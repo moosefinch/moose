@@ -55,6 +55,38 @@ async def rotate_api_key():
     return {"new_key": new_key, "old_key_valid_until": now + grace_period}
 
 
+@router.get("/api/key/status", dependencies=[Depends(verify_api_key)])
+async def key_status():
+    """Return current API key age and rotation recommendations."""
+    import hashlib as _hl
+
+    now = time.time()
+    key_hash = _hl.sha256(MOOSE_API_KEY.encode()).hexdigest()
+
+    with db_connection() as conn:
+        row = conn.execute(
+            "SELECT created_at FROM api_keys WHERE key_hash = ?",
+            (key_hash,)
+        ).fetchone()
+
+    if row:
+        created_at = row[0]
+        age_days = (now - created_at) / 86400
+        rotation_recommended = age_days > 30  # Recommend rotation after 30 days
+        return {
+            "key_age_days": round(age_days, 1),
+            "rotation_recommended": rotation_recommended,
+            "message": "Key rotation recommended" if rotation_recommended else "Key is current"
+        }
+
+    # Key not in database (legacy or first-time)
+    return {
+        "key_age_days": 0,
+        "rotation_recommended": False,
+        "message": "Key age unknown (not yet rotated)"
+    }
+
+
 @router.get("/api/config")
 async def get_public_config():
     """Return system name, version, and enabled plugins. No auth required."""

@@ -51,6 +51,7 @@ from config import (
 from profile import get_profile
 from inference import InferenceRouter, get_router
 from memory import VectorMemory
+from memory_v2 import MemoryV2
 from tools import get_all_tools, get_execution_tools, get_tools_for_agent, set_core_ref
 
 # Agent system imports — importing agents triggers auto-registration
@@ -180,6 +181,9 @@ class AgentCore:
         self._plugins: list = []
         # Soul context for presentation layer
         self._soul_context = ""
+        # Memory V2 — self-aware, self-populating memory system
+        self.memory_v2: Optional[MemoryV2] = None
+        self._current_session_id: Optional[str] = None
 
     # ── Persistent State ──
 
@@ -371,10 +375,13 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
 
         if self.available_models.get("embedder"):
             self.memory.set_embedder(API_BASE, MODELS["embedder"])
-            logger.info("Memory online (%d entries)", self.memory.count())
+            logger.info("Memory V1 online (%d entries)", self.memory.count())
 
         # Initialize agent system
         self._init_agent_system()
+
+        # Initialize Memory V2
+        await self._init_memory_v2()
 
         self._ready = True
 
@@ -456,6 +463,45 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             logger.error("Agent system init failed: %s", e)
             raise RuntimeError(f"Agent system initialization failed: {e}")
 
+    async def _init_memory_v2(self):
+        """Initialize Memory V2 — self-aware, self-populating memory system."""
+        try:
+            # Create embedder wrapper using existing infrastructure
+            async def embedder(text: str) -> list[float]:
+                if not self.memory._api_base or not self.memory._embed_model:
+                    raise RuntimeError("Embedder not configured")
+                return await self.memory.embed(text)
+
+            # Create LLM client wrapper for extraction/summarization
+            async def llm_client(model: str, messages: list, **kwargs) -> str:
+                model_id = MODELS.get(model, MODELS.get("classifier"))
+                if not model_id:
+                    raise RuntimeError(f"Model {model} not found")
+                result = await self._call_llm(model_id, messages, **kwargs)
+                return result["choices"][0]["message"].get("content", "")
+
+            # Initialize Memory V2
+            self.memory_v2 = MemoryV2(
+                embedder=embedder if self.available_models.get("embedder") else None,
+                llm_client=llm_client,
+                inference_url=API_BASE
+            )
+            await self.memory_v2.start()
+
+            # Create initial session
+            self._current_session_id = self.memory_v2.create_session()
+
+            logger.info(
+                "Memory V2 online: %s, context budget %d tokens",
+                self.memory_v2.get_system_profile().get("cpu_model", "Unknown")[:30],
+                self.memory_v2.get_context_budget().get("total", 0)
+            )
+
+        except Exception as e:
+            logger.error("Memory V2 init failed: %s", e)
+            # Don't raise - Memory V2 is optional, V1 still works
+            self.memory_v2 = None
+
     async def _start_plugins(self):
         """Load and start enabled plugins."""
         profile = get_profile()
@@ -511,6 +557,9 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
         for task in self._tasks.values():
             if task._task and not task._task.done():
                 task._task.cancel()
+        # Stop Memory V2
+        if self.memory_v2:
+            await self.memory_v2.stop()
         # Save persistent state
         self._save_state()
 
@@ -618,6 +667,18 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             }
 
         system_prompt = build_trivial_prompt(current_time)
+
+        # Inject Memory V2 context if available
+        if self.memory_v2:
+            try:
+                memory_context = await self.memory_v2.build_context(
+                    message, session_id=self._current_session_id
+                )
+                if memory_context.get("context"):
+                    system_prompt = f"{system_prompt}\n\n## User Context\n{memory_context['context']}"
+            except Exception:
+                pass
+
         if self._soul_context:
             system_prompt = f"{system_prompt}\n\n## Persistent Context\n{self._soul_context}"
 
@@ -640,6 +701,11 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             content = f"Error: {e}"
 
         elapsed = time.time() - t0
+
+        # Process through Memory V2 (async, don't block response)
+        if content and not content.startswith("Error"):
+            asyncio.create_task(self._process_memory_v2(message, content))
+
         return {
             "content": content,
             "model": "primary",
@@ -651,6 +717,50 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             "tier": "TRIVIAL",
             "error": bool(content.startswith("Error")),
         }
+
+    # ── Memory V2 Integration ──
+
+    async def _process_memory_v2(self, user_message: str, assistant_response: str,
+                                  context: dict = None):
+        """Process interaction through Memory V2 (learning + storage)."""
+        if not self.memory_v2:
+            return
+
+        try:
+            await self.memory_v2.process_interaction(
+                user_msg=user_message,
+                assistant_msg=assistant_response,
+                session_id=self._current_session_id,
+                context=context
+            )
+        except Exception as e:
+            logger.debug("Memory V2 processing failed: %s", e)
+
+    async def get_memory_v2_context(self, query: str) -> dict:
+        """Get context from Memory V2 for a query."""
+        if not self.memory_v2:
+            return {"context": "", "tokens": {"total": 0}}
+
+        try:
+            return await self.memory_v2.build_context(
+                query,
+                session_id=self._current_session_id
+            )
+        except Exception as e:
+            logger.debug("Memory V2 context building failed: %s", e)
+            return {"context": "", "tokens": {"total": 0}}
+
+    def get_memory_v2_stats(self) -> dict:
+        """Get Memory V2 statistics."""
+        if not self.memory_v2:
+            return {"enabled": False}
+
+        try:
+            stats = self.memory_v2.get_stats()
+            stats["enabled"] = True
+            return stats
+        except Exception:
+            return {"enabled": False}
 
     # ── Model Auto-Download ──
 
@@ -921,6 +1031,10 @@ Present these findings to the user. Be direct, thorough, and actionable."""
                 except Exception:
                     pass
 
+            # Process through Memory V2 (async, don't block response)
+            if content and not content.startswith("Error"):
+                asyncio.create_task(self._process_memory_v2(message, content))
+
             await self.broadcast({
                 "type": "mission_update", "mission_id": mission_id,
                 "status": "completed", "active_agent": agent_id,
@@ -1004,7 +1118,7 @@ Present these findings to the user. Be direct, thorough, and actionable."""
 
         elapsed = time.time() - t0
 
-        # Store in memory
+        # Store in memory (V1)
         if self.memory._api_base and response_text and not response_text.startswith("Error"):
             try:
                 models_used = ",".join(set(r.get("model", "") for r in mission.get("results", {}).values()))
@@ -1014,6 +1128,10 @@ Present these findings to the user. Be direct, thorough, and actionable."""
                 )
             except Exception:
                 pass
+
+        # Process through Memory V2 (async, don't block response)
+        if response_text and not response_text.startswith("Error"):
+            asyncio.create_task(self._process_memory_v2(message, response_text))
 
         return {
             "content": response_text,
@@ -1227,10 +1345,14 @@ Present these findings to the user. Be direct, thorough, and actionable."""
         if self.cognitive_loop:
             cognitive = self.cognitive_loop.get_status()
 
+        # Memory V2 stats
+        memory_v2_stats = self.get_memory_v2_stats()
+
         return {
             "ready": self._ready,
             "models": models,
             "memory_entries": self.memory.count(),
+            "memory_v2": memory_v2_stats,
             "connected_clients": len(self.ws_clients),
             "tools": [fn.__name__ for fn in self.tools],
             "active_tasks": active_tasks,

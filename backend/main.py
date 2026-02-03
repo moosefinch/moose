@@ -10,6 +10,9 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -42,7 +45,15 @@ async def lifespan(app: FastAPI):
     await core.shutdown()
 
 
-app = FastAPI(title="Moose", lifespan=lifespan)
+app = FastAPI(
+    title="Moose",
+    description="Local-first, security-centric multi-agent AI engineering assistant API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    lifespan=lifespan
+)
 set_app(app)
 
 from profile import get_profile as _get_cors_profile
@@ -54,6 +65,65 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to all responses."""
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self' ws: wss:; "
+            "frame-ancestors 'none'"
+        )
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+
+class AuditMiddleware(BaseHTTPMiddleware):
+    """Log security-relevant API requests to audit log."""
+
+    # Endpoints to audit (security-sensitive operations)
+    AUDIT_ENDPOINTS = {
+        "/api/query",
+        "/api/key/rotate",
+        "/api/key/status",
+        "/api/tasks",
+        "/api/files",
+        "/ws",
+    }
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+
+        # Only audit specific endpoints
+        path = request.url.path
+        if any(path.startswith(ep) for ep in self.AUDIT_ENDPOINTS):
+            try:
+                from audit import audit
+                audit(
+                    "api_request",
+                    ip_address=request.client.host if request.client else None,
+                    endpoint=path,
+                    method=request.method,
+                    status_code=response.status_code,
+                )
+            except Exception:
+                pass  # Don't let audit failures break requests
+
+        return response
+
+
+app.add_middleware(AuditMiddleware)
 
 register_routes(app)
 

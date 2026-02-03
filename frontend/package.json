@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "audit": "npm audit --omit=dev",
-    "prebuild": "npm audit --audit-level=high --omit=dev || true"
+    "prebuild": "npm audit --audit-level=high --omit=dev"
   },
   "dependencies": {
     "@react-three/drei": "^9.97.0",

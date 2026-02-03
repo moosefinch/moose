@@ -290,6 +290,22 @@ def init_db():
         expires_at REAL,
         active INTEGER DEFAULT 1
     )''')
+    # Audit log (security event tracking)
+    c.execute('''CREATE TABLE IF NOT EXISTS audit_log (
+        id TEXT PRIMARY KEY,
+        timestamp REAL NOT NULL,
+        event_type TEXT NOT NULL,
+        actor TEXT,
+        ip_address TEXT,
+        endpoint TEXT,
+        method TEXT,
+        status_code INTEGER,
+        request_summary TEXT,
+        metadata TEXT
+    )''')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_audit_event_type ON audit_log(event_type)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor)')
     conn.commit()
 
     # Initialize plugin tables
