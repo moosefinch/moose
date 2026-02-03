@@ -1,5 +1,5 @@
 """
-Base agent abstraction for GPS multi-agent architecture.
+Base agent abstraction for Moose multi-agent architecture.
 
 Provides AgentState, ModelSize, AgentDefinition, and BaseAgent — the foundation
 that all specialist agents inherit from.
@@ -43,7 +43,7 @@ class AgentDefinition:
 
 
 class BaseAgent(ABC):
-    """Base class for all GPS agents.
+    """Base class for all Moose agents.
 
     Provides model lifecycle management, message handling, workspace access,
     and LLM/tool delegation through the AgentCore reference.

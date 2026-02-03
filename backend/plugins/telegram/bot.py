@@ -1,5 +1,5 @@
 """
-TelegramBridge — connects GPS to Telegram using python-telegram-bot polling.
+TelegramBridge — connects Moose to Telegram using python-telegram-bot polling.
 
 On incoming message: routes through agent_core.chat(), sends response back.
 Logs all messages to platform_messages table.
@@ -86,7 +86,7 @@ class TelegramBridge:
             content=text,
         )
 
-        # Route through GPS agent system
+        # Route through Moose agent system
         try:
             result = await self._core.chat(text, history=[])
             response = result.get("content", "Sorry, I couldn't process that.")

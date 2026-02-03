@@ -127,14 +127,14 @@ class PluginToggle:
 @dataclass
 class TelegramPluginConfig:
     enabled: bool = False
-    token: str = ""  # loaded from GPS_TELEGRAM_TOKEN env var
+    token: str = ""  # loaded from MOOSE_TELEGRAM_TOKEN env var
 
 
 @dataclass
 class SlackPluginConfig:
     enabled: bool = False
-    bot_token: str = ""   # loaded from GPS_SLACK_BOT_TOKEN env var
-    app_token: str = ""   # loaded from GPS_SLACK_APP_TOKEN env var
+    bot_token: str = ""   # loaded from MOOSE_SLACK_BOT_TOKEN env var
+    app_token: str = ""   # loaded from MOOSE_SLACK_APP_TOKEN env var
 
 
 @dataclass
@@ -243,7 +243,7 @@ def _load_profile_from_dict(raw: dict) -> Profile:
         smtp_data = raw["smtp"].copy()
         # Load password from env var
         smtp_data.setdefault("password",
-                             os.environ.get("GPS_SMTP_PASSWORD", ""))
+                             os.environ.get("MOOSE_SMTP_PASSWORD", ""))
         profile.smtp = _parse_dict(smtp_data, SmtpConfig)
 
     # Inference
@@ -298,7 +298,7 @@ def _load_profile_from_dict(raw: dict) -> Profile:
         if isinstance(tg_raw, dict):
             plugins.telegram = TelegramPluginConfig(
                 enabled=tg_raw.get("enabled", False),
-                token=os.environ.get("GPS_TELEGRAM_TOKEN", tg_raw.get("token", "")),
+                token=os.environ.get("MOOSE_TELEGRAM_TOKEN", tg_raw.get("token", "")),
             )
 
         # Slack plugin
@@ -306,8 +306,8 @@ def _load_profile_from_dict(raw: dict) -> Profile:
         if isinstance(sl_raw, dict):
             plugins.slack = SlackPluginConfig(
                 enabled=sl_raw.get("enabled", False),
-                bot_token=os.environ.get("GPS_SLACK_BOT_TOKEN", sl_raw.get("bot_token", "")),
-                app_token=os.environ.get("GPS_SLACK_APP_TOKEN", sl_raw.get("app_token", "")),
+                bot_token=os.environ.get("MOOSE_SLACK_BOT_TOKEN", sl_raw.get("bot_token", "")),
+                app_token=os.environ.get("MOOSE_SLACK_APP_TOKEN", sl_raw.get("app_token", "")),
             )
 
         # Blender plugin
@@ -324,7 +324,7 @@ def _load_profile_from_dict(raw: dict) -> Profile:
             plugins.printing = PrintingPluginConfig(
                 enabled=pr_raw.get("enabled", False),
                 printer_ip=pr_raw.get("printer_ip", ""),
-                access_code=os.environ.get("GPS_PRINTER_ACCESS_CODE",
+                access_code=os.environ.get("MOOSE_PRINTER_ACCESS_CODE",
                                            pr_raw.get("access_code", "")),
                 serial=pr_raw.get("serial", ""),
                 ftps_port=pr_raw.get("ftps_port", 990),

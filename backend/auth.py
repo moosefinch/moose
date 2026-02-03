@@ -16,7 +16,7 @@ from fastapi import Request, HTTPException
 from core import AgentCore
 
 
-_API_KEY_PATH = Path(__file__).parent / ".gps_api_key"
+_API_KEY_PATH = Path(__file__).parent / ".moose_api_key"
 
 
 def _load_or_create_api_key() -> str:
@@ -28,13 +28,13 @@ def _load_or_create_api_key() -> str:
     return key
 
 
-GPS_API_KEY = os.environ.get("GPS_API_KEY") or _load_or_create_api_key()
+MOOSE_API_KEY = os.environ.get("MOOSE_API_KEY") or _load_or_create_api_key()
 
 
 def verify_api_key(request: Request):
     """Dependency that checks for a valid API key in the X-API-Key header."""
     key = request.headers.get("x-api-key")
-    if not key or not secrets.compare_digest(key, GPS_API_KEY):
+    if not key or not secrets.compare_digest(key, MOOSE_API_KEY):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 

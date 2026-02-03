@@ -1,5 +1,5 @@
 """
-Email Sender — async SMTP sending for GPS outreach.
+Email Sender — async SMTP sending for Moose outreach.
 Plain text only. Rate limited. List-Unsubscribe header for compliance.
 """
 
@@ -77,7 +77,7 @@ class EmailSender:
             if rate_error:
                 return SendResult(success=False, error=rate_error)
 
-            message_id = f"<{uuid.uuid4()}@{self.from_email.split('@')[-1] if '@' in self.from_email else 'gps.local'}>"
+            message_id = f"<{uuid.uuid4()}@{self.from_email.split('@')[-1] if '@' in self.from_email else 'moose.local'}>"
 
             # Sanitize headers — strip characters that could inject additional headers
             def _sanitize_header(value: str) -> str:

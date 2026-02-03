@@ -80,14 +80,14 @@ STATE_FILE_PATH = STATE_DIR / "state.json"
 SOUL_FILE_PATH = STATE_DIR / "SOUL.md"
 
 # ── SMTP Configuration from profile ──
-SMTP_HOST = os.environ.get("GPS_SMTP_HOST", _profile.smtp.host)
-SMTP_PORT = int(os.environ.get("GPS_SMTP_PORT", str(_profile.smtp.port)))
-SMTP_USER = os.environ.get("GPS_SMTP_USER", _profile.smtp.user)
-SMTP_PASSWORD = os.environ.get("GPS_SMTP_PASSWORD", _profile.smtp.password)
-SMTP_FROM_NAME = os.environ.get("GPS_SMTP_FROM_NAME", _profile.smtp.from_name)
-SMTP_FROM_EMAIL = os.environ.get("GPS_SMTP_FROM_EMAIL", _profile.smtp.from_email)
+SMTP_HOST = os.environ.get("MOOSE_SMTP_HOST", _profile.smtp.host)
+SMTP_PORT = int(os.environ.get("MOOSE_SMTP_PORT", str(_profile.smtp.port)))
+SMTP_USER = os.environ.get("MOOSE_SMTP_USER", _profile.smtp.user)
+SMTP_PASSWORD = os.environ.get("MOOSE_SMTP_PASSWORD", _profile.smtp.password)
+SMTP_FROM_NAME = os.environ.get("MOOSE_SMTP_FROM_NAME", _profile.smtp.from_name)
+SMTP_FROM_EMAIL = os.environ.get("MOOSE_SMTP_FROM_EMAIL", _profile.smtp.from_email)
 SMTP_USE_TLS = _profile.smtp.use_tls
-SMTP_ENABLED = _profile.smtp.enabled or os.environ.get("GPS_SMTP_ENABLED", "false").lower() == "true"
+SMTP_ENABLED = _profile.smtp.enabled or os.environ.get("MOOSE_SMTP_ENABLED", "false").lower() == "true"
 SMTP_SENDS_PER_MINUTE = _profile.smtp.sends_per_minute
 
 # ── Agent Definitions (dynamic — only enabled agents) ──

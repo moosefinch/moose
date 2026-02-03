@@ -2,8 +2,8 @@
   "id": "telegram",
   "name": "Telegram Bot",
   "version": "1.0.0",
-  "description": "Connect GPS to Telegram via polling bot. Messages route through the agent system.",
-  "author": "GPS Core",
+  "description": "Connect Moose to Telegram via polling bot. Messages route through the agent system.",
+  "author": "Moose",
   "provides": ["integration", "db"],
   "dependencies": ["python-telegram-bot>=20.0"]
 }

@@ -1,5 +1,5 @@
 """
-SlackBridge — connects GPS to Slack using slack-bolt with AsyncSocketModeHandler.
+SlackBridge — connects Moose to Slack using slack-bolt with AsyncSocketModeHandler.
 
 Listens for app_mention and DM message events.
 Routes through agent_core.chat(), responds in originating channel/DM.
@@ -86,7 +86,7 @@ class SlackBridge:
             content=text,
         )
 
-        # Route through GPS agent system
+        # Route through Moose agent system
         try:
             result = await self._core.chat(text, history=[])
             response = result.get("content", "Sorry, I couldn't process that.")

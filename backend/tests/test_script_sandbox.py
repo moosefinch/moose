@@ -224,21 +224,21 @@ class TestInterpreterValidation:
 class TestEnvironmentStripping:
     """Test that secrets are removed from the script execution environment."""
 
-    def test_strips_gps_api_key(self):
-        os.environ["GPS_API_KEY_TEST"] = "secret123"
+    def test_strips_moose_api_key(self):
+        os.environ["MOOSE_API_KEY_TEST"] = "secret123"
         try:
             env = _make_clean_env()
-            assert "GPS_API_KEY_TEST" not in env
+            assert "MOOSE_API_KEY_TEST" not in env
         finally:
-            del os.environ["GPS_API_KEY_TEST"]
+            del os.environ["MOOSE_API_KEY_TEST"]
 
     def test_strips_smtp_password(self):
-        os.environ["GPS_SMTP_PASSWORD"] = "secret"
+        os.environ["MOOSE_SMTP_PASSWORD"] = "secret"
         try:
             env = _make_clean_env()
-            assert "GPS_SMTP_PASSWORD" not in env
+            assert "MOOSE_SMTP_PASSWORD" not in env
         finally:
-            del os.environ["GPS_SMTP_PASSWORD"]
+            del os.environ["MOOSE_SMTP_PASSWORD"]
 
     def test_strips_generic_secret(self):
         os.environ["MY_SECRET_VALUE"] = "hidden"
@@ -249,12 +249,12 @@ class TestEnvironmentStripping:
             del os.environ["MY_SECRET_VALUE"]
 
     def test_strips_token(self):
-        os.environ["GPS_TELEGRAM_TOKEN"] = "tok"
+        os.environ["MOOSE_TELEGRAM_TOKEN"] = "tok"
         try:
             env = _make_clean_env()
-            assert "GPS_TELEGRAM_TOKEN" not in env
+            assert "MOOSE_TELEGRAM_TOKEN" not in env
         finally:
-            del os.environ["GPS_TELEGRAM_TOKEN"]
+            del os.environ["MOOSE_TELEGRAM_TOKEN"]
 
     def test_preserves_safe_vars(self):
         env = _make_clean_env()

@@ -9,7 +9,7 @@ interface Config {
 }
 
 const defaultConfig: Config = {
-  systemName: 'GPS',
+  systemName: 'Moose',
   version: '',
   enabledPlugins: [],
 }

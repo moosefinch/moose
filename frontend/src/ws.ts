@@ -2,7 +2,7 @@ import { wsUrl, getApiKey } from './api'
 
 export type WSHandler = (data: Record<string, unknown>) => void
 
-export class GPSWebSocket {
+export class MooseWebSocket {
   private ws: WebSocket | null = null
   private pingInterval: ReturnType<typeof setInterval> | null = null
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null

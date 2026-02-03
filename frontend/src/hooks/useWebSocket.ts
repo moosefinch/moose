@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { GPSWebSocket, WSHandler } from '../ws'
+import { MooseWebSocket, WSHandler } from '../ws'
 
 export function useWebSocket() {
   const [connected, setConnected] = useState(false)
-  const wsRef = useRef<GPSWebSocket | null>(null)
+  const wsRef = useRef<MooseWebSocket | null>(null)
 
   useEffect(() => {
-    const ws = new GPSWebSocket(setConnected)
+    const ws = new MooseWebSocket(setConnected)
     wsRef.current = ws
     ws.start()
     return () => ws.stop()

@@ -1,8 +1,8 @@
-# General Prime Secure (GPS)
+# Moose
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Local-first, privacy-first multi-agent AI system. Configurable via `profile.yaml`.
+Moose is a local-first, security-centric engineering assistant designed to make engineering, building, making, and tinkering more easily accessible & fun!
 
 ## Prerequisites
 
@@ -88,7 +88,7 @@ Optional (CRM plugin):
 ## Files
 
 ```
-General Prime Secure/
+Moose/
 ├── backend/
 │   ├── main.py              # FastAPI app creation, lifespan, CORS, static mount
 │   ├── schema.py            # Database schema (all CREATE TABLE statements)
@@ -131,7 +131,7 @@ General Prime Secure/
 │   └── install-daemon.sh    # macOS launchd installer
 ├── profile.yaml.example     # Reference configuration
 ├── start.sh                 # Startup script
-└── com.gps.backend.plist.template
+└── com.moose.backend.plist.template
 ```
 
 ## Testing
@@ -168,4 +168,4 @@ Contributions are welcome! Please open an issue to discuss proposed changes befo
 
 ## License
 
-General Prime Secure is licensed under the [Apache License 2.0](LICENSE).
+Moose is licensed under the [Apache License 2.0](LICENSE).

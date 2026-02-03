@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.gps.backend</string>
+    <string>com.moose.backend</string>
 
     <key>ProgramArguments</key>
     <array>
@@ -21,10 +21,10 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>{{LOG_DIR}}/gps-backend.log</string>
+    <string>{{LOG_DIR}}/moose-backend.log</string>
 
     <key>StandardErrorPath</key>
-    <string>{{LOG_DIR}}/gps-backend-error.log</string>
+    <string>{{LOG_DIR}}/moose-backend-error.log</string>
 
     <key>EnvironmentVariables</key>
     <dict>
