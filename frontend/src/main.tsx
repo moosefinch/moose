@@ -9,6 +9,7 @@ import './styles/layout.css'
 import './styles/pages.css'
 import './styles/ambient.css'
 import './styles/viewport.css'
+import './styles/chat.css'
 import 'highlight.js/styles/github-dark.css'
 
 class ErrorBoundary extends React.Component<

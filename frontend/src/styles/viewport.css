@@ -1,50 +1,87 @@
-/* ═══ 3D Viewport ═══ */
+/* ═══ 3D Viewport — Glassmorphism themed ═══ */
 
 .viewport-toolbar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, rgba(18, 16, 14, 0.9) 0%, rgba(12, 10, 8, 0.95) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     flex-shrink: 0;
+    position: relative;
+}
+
+.viewport-toolbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(74, 122, 101, 0.1) 50%, transparent 100%);
 }
 
 .vp-tool-btn {
-    padding: 6px 14px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
+    padding: 8px 16px;
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.08) 0%, rgba(18, 16, 14, 0.5) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: var(--radius-xs);
     color: var(--text-secondary);
     font-family: var(--font);
     font-size: 0.82rem;
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.vp-tool-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
 }
 
 .vp-tool-btn:hover {
     color: var(--text);
-    border-color: var(--primary-dim);
+    border-color: rgba(212, 176, 106, 0.15);
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.12) 0%, rgba(18, 16, 14, 0.6) 100%);
 }
 
 .vp-tool-btn.active {
     color: var(--primary);
-    border-color: var(--primary);
-    background: var(--primary-dim);
+    border-color: rgba(212, 176, 106, 0.25);
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.2) 0%, rgba(18, 16, 14, 0.7) 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 15px rgba(212, 176, 106, 0.08);
 }
 
 .vp-tool-separator {
     width: 1px;
-    height: 20px;
-    background: var(--border);
-    margin: 0 4px;
+    height: 24px;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    margin: 0 6px;
 }
 
 .viewport-canvas-wrapper {
     flex: 1;
     position: relative;
-    background: #0a0a0a;
+    background: linear-gradient(180deg, #0a0908 0%, #080706 100%);
     overflow: hidden;
+}
+
+/* Grid overlay for 3D viewport */
+.viewport-canvas-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(15, 31, 26, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 30% at 80% 20%, rgba(46, 37, 31, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .viewport-empty-overlay {
@@ -54,8 +91,115 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 12px;
     color: var(--text-secondary);
     pointer-events: none;
     font-size: 1rem;
+    z-index: 2;
+}
+
+.viewport-empty-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(74, 122, 101, 0.05) 0%, transparent 70%);
+}
+
+.viewport-empty-icon {
+    font-size: 3rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    margin-bottom: 8px;
+}
+
+.viewport-empty-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+/* Model info panel */
+.viewport-info-panel {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    padding: 12px 16px;
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.15) 0%, rgba(18, 16, 14, 0.85) 100%);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-sm);
+    z-index: 10;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.viewport-info-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.viewport-info-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.viewport-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.viewport-info-label {
+    color: var(--text-muted);
+    min-width: 60px;
+}
+
+.viewport-info-value {
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* Viewport controls overlay */
+.viewport-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+}
+
+.viewport-control-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.2) 0%, rgba(18, 16, 14, 0.8) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-xs);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.viewport-control-btn:hover {
+    color: var(--primary);
+    border-color: rgba(212, 176, 106, 0.2);
+    background: linear-gradient(165deg, rgba(38, 64, 53, 0.3) 0%, rgba(18, 16, 14, 0.9) 100%);
+}
+
+.viewport-control-btn svg {
+    width: 18px;
+    height: 18px;
 }

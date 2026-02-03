@@ -1,5 +1,6 @@
 import { useNavigation, type Page } from '../../contexts/NavigationContext'
 import type { CognitiveStatus } from '../../types'
+import MooseAvatar, { type AvatarState } from '../MooseAvatar'
 
 const TABS: { id: Page; label: string; shortcut: string }[] = [
   { id: 'dashboard', label: 'Dashboard', shortcut: '1' },
@@ -14,10 +15,27 @@ interface TabBarProps {
   cognitiveStatus: CognitiveStatus | null
 }
 
+// Map cognitive phases to avatar states
+function phaseToAvatarState(phase: string): AvatarState {
+  switch (phase) {
+    case 'observe':
+    case 'orient':
+      return 'thinking'
+    case 'decide':
+      return 'thinking'
+    case 'act':
+      return 'talking'
+    default:
+      return 'idle'
+  }
+}
+
 export function TabBar({ connected, apiUp, cognitiveStatus }: TabBarProps) {
   const { page, setPage } = useNavigation()
 
   const phase = cognitiveStatus?.phase ?? 'idle'
+  const avatarState = phaseToAvatarState(phase)
+
   const phaseColors: Record<string, string> = {
     idle: 'var(--text-muted)',
     observe: 'var(--primary)',
@@ -28,6 +46,16 @@ export function TabBar({ connected, apiUp, cognitiveStatus }: TabBarProps) {
 
   return (
     <nav className="tab-bar">
+      {/* Moose Avatar Logo */}
+      <div className="tab-bar-logo">
+        <MooseAvatar
+          state={avatarState}
+          size={36}
+          className="tab-bar-avatar"
+        />
+        <span className="tab-bar-brand">Moose</span>
+      </div>
+
       <div className="tab-bar-tabs">
         {TABS.map(tab => (
           <button
