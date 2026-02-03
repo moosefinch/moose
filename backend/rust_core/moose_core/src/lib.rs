@@ -11,7 +11,6 @@ pub mod workspace;
 
 #[pymodule]
 fn moose_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    pyo3_async_runtimes::tokio::init_multi_thread_once();
     m.add_class::<vector::VectorMemory>()?;
     m.add_class::<episodic::EpisodicMemory>()?;
     m.add_class::<messages::MessageBus>()?;

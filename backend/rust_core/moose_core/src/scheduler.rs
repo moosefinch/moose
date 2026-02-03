@@ -31,6 +31,7 @@ struct Task {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct Mission {
     id: String, status: String, tasks: HashMap<String, Task>, completed_tasks: usize, total_tasks: usize,
     levels: Vec<Vec<String>>, current_level: usize, created_at: String, completed_at: Option<String>,
@@ -60,12 +61,14 @@ pub struct Scheduler {
 impl Scheduler {
     #[new]
     #[pyo3(signature = (poll_interval_ms=None))]
-    fn new(_poll_interval_ms: Option<u64>) -> Self {
+    fn new(poll_interval_ms: Option<u64>) -> Self {
+        let _ = poll_interval_ms; // unused but kept for API compatibility
         Self { missions: Arc::new(DashMap::new()), running: Arc::new(AtomicBool::new(false)) }
     }
 
     #[pyo3(signature = (mission_id, tasks, synthesize=None, user_message=None))]
-    fn submit_mission(&self, mission_id: String, tasks: Vec<HashMap<String, String>>, _synthesize: Option<bool>, _user_message: Option<String>) -> PyResult<()> {
+    fn submit_mission(&self, mission_id: String, tasks: Vec<HashMap<String, String>>, synthesize: Option<bool>, user_message: Option<String>) -> PyResult<()> {
+        let _ = (synthesize, user_message); // unused but kept for API compatibility
         if self.missions.contains_key(&mission_id) { return Err(SchedulerError::MissionAlreadyExists(mission_id).into()); }
         let mut task_map = HashMap::new();
         for t in tasks {
@@ -91,6 +94,7 @@ impl Scheduler {
         } else { Ok(None) }
     }
 
+    #[pyo3(signature = (mission_id, task_id, result=None))]
     fn complete_task(&self, mission_id: String, task_id: String, result: Option<String>) -> PyResult<bool> {
         if let Some(mut m) = self.missions.get_mut(&mission_id) {
             let task_result = result.clone();

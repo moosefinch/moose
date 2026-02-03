@@ -5,7 +5,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
-use parking_lot::RwLock;
+use parking_lot::Mutex;
 use pyo3::prelude::*;
 use regex::Regex;
 use rusqlite::{params, Connection, OptionalExtension};
@@ -36,7 +36,7 @@ struct MessageBusInner { conn: Connection }
 
 #[pyclass]
 pub struct MessageBus {
-    inner: Arc<RwLock<MessageBusInner>>,
+    inner: Arc<Mutex<MessageBusInner>>,
     cache: Arc<DashMap<String, Vec<HashMap<String, String>>>>,
 }
 
@@ -65,35 +65,36 @@ impl MessageBus {
     #[pyo3(signature = (db_path=None))]
     fn new(db_path: Option<String>) -> PyResult<Self> {
         let db_path = db_path.unwrap_or_else(|| "backend/messages.db".to_string());
-        let conn = Connection::open(&db_path)?;
-        conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;")?;
+        let conn = Connection::open(&db_path).map_err(MessageBusError::from)?;
+        conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;").map_err(MessageBusError::from)?;
         Self::init_schema(&conn)?;
-        Ok(Self { inner: Arc::new(RwLock::new(MessageBusInner { conn })), cache: Arc::new(DashMap::new()) })
+        Ok(Self { inner: Arc::new(Mutex::new(MessageBusInner { conn })), cache: Arc::new(DashMap::new()) })
     }
 
+    #[pyo3(signature = (msg_type, sender, recipient, mission_id, content, priority=None))]
     fn send(&self, msg_type: String, sender: String, recipient: String, mission_id: String, content: String, priority: Option<i32>) -> PyResult<String> {
         let id = Uuid::new_v4().to_string()[..12].to_string();
         let now = Utc::now().to_rfc3339();
         let priority = priority.unwrap_or(1);
         let has_injection = Self::detect_injection(&content);
         let payload = if has_injection { r#"{"_injection_warning": true}"# } else { "{}" };
-        let inner = self.inner.write();
+        let inner = self.inner.lock();
         inner.conn.execute(
             "INSERT INTO agent_messages (id, msg_type, sender, recipient, mission_id, priority, content, payload, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![id, msg_type, sender, recipient, mission_id, priority, content, payload, now],
-        )?;
+        ).map_err(MessageBusError::from)?;
         Ok(id)
     }
 
     fn pop_next(&self, agent_id: String) -> PyResult<Option<HashMap<String, String>>> {
-        let inner = self.inner.write();
+        let inner = self.inner.lock();
         let now = Utc::now().to_rfc3339();
         let msg: Option<(String, String, String, String)> = inner.conn.query_row(
             "SELECT id, msg_type, sender, content FROM agent_messages WHERE recipient = ?1 AND processed_at IS NULL ORDER BY priority DESC, created_at ASC LIMIT 1",
             params![agent_id], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
-        ).optional()?;
+        ).optional().map_err(MessageBusError::from)?;
         if let Some((id, msg_type, sender, content)) = msg {
-            inner.conn.execute("UPDATE agent_messages SET processed_at = ?1 WHERE id = ?2", params![now, id])?;
+            inner.conn.execute("UPDATE agent_messages SET processed_at = ?1 WHERE id = ?2", params![now, id]).map_err(MessageBusError::from)?;
             let mut map = HashMap::new();
             map.insert("id".to_string(), id);
             map.insert("msg_type".to_string(), msg_type);
@@ -104,28 +105,28 @@ impl MessageBus {
     }
 
     fn has_pending(&self, agent_id: String) -> PyResult<bool> {
-        let inner = self.inner.read();
-        let count: u64 = inner.conn.query_row("SELECT COUNT(*) FROM agent_messages WHERE recipient = ?1 AND processed_at IS NULL", params![agent_id], |row| row.get(0))?;
+        let inner = self.inner.lock();
+        let count: u64 = inner.conn.query_row("SELECT COUNT(*) FROM agent_messages WHERE recipient = ?1 AND processed_at IS NULL", params![agent_id], |row| row.get(0)).map_err(MessageBusError::from)?;
         Ok(count > 0)
     }
 
     fn agents_with_pending_messages(&self) -> PyResult<Vec<String>> {
-        let inner = self.inner.read();
-        let mut stmt = inner.conn.prepare("SELECT DISTINCT recipient FROM agent_messages WHERE processed_at IS NULL")?;
-        let agents: Vec<String> = stmt.query_map([], |row| row.get(0))?.filter_map(|r| r.ok()).collect();
+        let inner = self.inner.lock();
+        let mut stmt = inner.conn.prepare("SELECT DISTINCT recipient FROM agent_messages WHERE processed_at IS NULL").map_err(MessageBusError::from)?;
+        let agents: Vec<String> = stmt.query_map([], |row| row.get(0)).map_err(MessageBusError::from)?.filter_map(|r| r.ok()).collect();
         Ok(agents)
     }
 
     fn count(&self) -> PyResult<u64> {
-        let inner = self.inner.read();
-        let count: u64 = inner.conn.query_row("SELECT COUNT(*) FROM agent_messages", [], |row| row.get(0))?;
+        let inner = self.inner.lock();
+        let count: u64 = inner.conn.query_row("SELECT COUNT(*) FROM agent_messages", [], |row| row.get(0)).map_err(MessageBusError::from)?;
         Ok(count)
     }
 
     fn clear(&self) -> PyResult<()> {
         self.cache.clear();
-        let inner = self.inner.write();
-        inner.conn.execute("DELETE FROM agent_messages", [])?;
+        let inner = self.inner.lock();
+        inner.conn.execute("DELETE FROM agent_messages", []).map_err(MessageBusError::from)?;
         Ok(())
     }
 }

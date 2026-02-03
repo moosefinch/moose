@@ -13,7 +13,6 @@ use ndarray::{Array1, Array2};
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
 use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};

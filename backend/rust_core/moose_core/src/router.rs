@@ -58,6 +58,7 @@ impl InferenceRouter {
         }
     }
 
+    #[pyo3(signature = (name, base_url, api_key=None))]
     fn add_backend(&self, name: String, base_url: String, api_key: Option<String>) {
         pyo3_async_runtimes::tokio::get_runtime().block_on(async {
             let mut inner = self.inner.lock().await;
@@ -72,6 +73,7 @@ impl InferenceRouter {
         });
     }
 
+    #[pyo3(signature = (model_key_or_id, messages, max_tokens=None, temperature=None))]
     fn call_llm<'py>(&self, py: Python<'py>, model_key_or_id: String, messages: Vec<HashMap<String, String>>, max_tokens: Option<usize>, temperature: Option<f64>) -> PyResult<Bound<'py, PyAny>> {
         let inner_arc = self.inner.clone();
         let client = self.http_client.clone();
@@ -89,9 +91,9 @@ impl InferenceRouter {
             let mut req = client.post(&url).json(&body);
             if let Some(ref key) = backend.api_key { req = req.header("Authorization", format!("Bearer {}", key)); }
             drop(inner);
-            let response = req.send().await?;
+            let response = req.send().await.map_err(RouterError::from)?;
             if !response.status().is_success() { return Err(RouterError::ApiError(format!("HTTP {}", response.status())).into()); }
-            let chat: ChatResponse = response.json().await?;
+            let chat: ChatResponse = response.json().await.map_err(RouterError::from)?;
             let content = chat.choices.first().and_then(|c| c.message.content.clone()).unwrap_or_default();
             let mut result = HashMap::new();
             result.insert("content".to_string(), content);
@@ -115,9 +117,9 @@ impl InferenceRouter {
             let mut req = client.post(&url).json(&body);
             if let Some(ref key) = backend.api_key { req = req.header("Authorization", format!("Bearer {}", key)); }
             drop(inner);
-            let response = req.send().await?;
+            let response = req.send().await.map_err(RouterError::from)?;
             if !response.status().is_success() { return Err(RouterError::ApiError(format!("HTTP {}", response.status())).into()); }
-            let embed: EmbedResponse = response.json().await?;
+            let embed: EmbedResponse = response.json().await.map_err(RouterError::from)?;
             let embeddings: Vec<Vec<f32>> = embed.data.into_iter().map(|d| d.embedding).collect();
             Ok(embeddings)
         })
