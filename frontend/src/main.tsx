@@ -2,8 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
 import { ConfigProvider } from './contexts/ConfigContext'
+import { NavigationProvider } from './contexts/NavigationContext'
+import { ToastProvider } from './contexts/ToastContext'
 import './styles/global.css'
 import './styles/layout.css'
+import './styles/pages.css'
+import './styles/ambient.css'
+import './styles/viewport.css'
 import 'highlight.js/styles/github-dark.css'
 
 class ErrorBoundary extends React.Component<
@@ -41,7 +46,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <ConfigProvider>
-        <App />
+        <NavigationProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </NavigationProvider>
       </ConfigProvider>
     </ErrorBoundary>
   </React.StrictMode>

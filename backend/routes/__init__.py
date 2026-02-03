@@ -20,6 +20,7 @@ from routes.jobs import router as jobs_router
 from routes.voice import router as voice_router
 from routes.plugins import router as plugins_router
 from routes.webhooks import router as webhooks_router
+from routes.printer import router as printer_router
 
 
 def register_routes(app: FastAPI):
@@ -40,3 +41,4 @@ def register_routes(app: FastAPI):
     app.include_router(voice_router)
     app.include_router(plugins_router)
     app.include_router(webhooks_router)
+    app.include_router(printer_router)
