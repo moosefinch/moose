@@ -14,6 +14,7 @@ interface Props {
   onCreateWebhook?: (data: Record<string, unknown>) => void
   onUpdateWebhook?: (id: string, data: Record<string, unknown>) => void
   onDeleteWebhook?: (id: string) => void
+  embedded?: boolean
 }
 
 function formatRelative(iso?: string): string {
@@ -42,7 +43,7 @@ const typeBadgeColor: Record<string, string> = {
 
 export function SchedulingDrawer({
   open, onClose, jobs, onCreateJob, onUpdateJob, onDeleteJob, onParseNatural,
-  webhooks, onCreateWebhook, onUpdateWebhook, onDeleteWebhook,
+  webhooks, onCreateWebhook, onUpdateWebhook, onDeleteWebhook, embedded,
 }: Props) {
   const [tab, setTab] = useState<'jobs' | 'webhooks'>('jobs')
   const [showForm, setShowForm] = useState(false)
@@ -111,10 +112,14 @@ export function SchedulingDrawer({
 
   return (
     <div style={{
-      position: 'fixed', top: 0, right: 0, width: 420, height: '100vh',
-      background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border)',
-      zIndex: 100, display: 'flex', flexDirection: 'column',
-      boxShadow: '-4px 0 16px rgba(0,0,0,0.3)',
+      position: embedded ? 'relative' : 'fixed',
+      top: embedded ? 'auto' : 0, right: embedded ? 'auto' : 0,
+      width: embedded ? '100%' : 420, height: embedded ? '100%' : '100vh',
+      background: 'var(--bg-secondary)',
+      borderLeft: embedded ? 'none' : '1px solid var(--border)',
+      zIndex: embedded ? 'auto' : 100, display: 'flex', flexDirection: 'column',
+      boxShadow: embedded ? 'none' : '-4px 0 16px rgba(0,0,0,0.3)',
+      flex: embedded ? 1 : undefined, overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{

@@ -1,5 +1,5 @@
 [project]
-name = "general-prime-secure"
+name = "moose"
 version = "0.1.0"
 description = "Local-first, privacy-first multi-agent AI system"
 requires-python = ">=3.11"

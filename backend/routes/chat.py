@@ -9,7 +9,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone
 
-from auth import verify_api_key, require_ready, get_core, GPS_API_KEY
+from auth import verify_api_key, require_ready, get_core, MOOSE_API_KEY
 from db import db_connection
 from models import ChatQuery
 
@@ -35,7 +35,7 @@ async def ws_endpoint(websocket: WebSocket):
             not isinstance(auth_msg, dict)
             or auth_msg.get("type") != "auth"
             or not isinstance(auth_msg.get("api_key"), str)
-            or not secrets.compare_digest(auth_msg["api_key"], GPS_API_KEY)
+            or not secrets.compare_digest(auth_msg["api_key"], MOOSE_API_KEY)
         ):
             await websocket.close(code=4001, reason="Invalid or missing API key")
             return

@@ -1,4 +1,4 @@
-# General Prime Secure — Profile Configuration
+# Moose — Profile Configuration
 # Copy this file to profile.yaml and customize for your deployment.
 # Alternatively, set PROFILE_PATH env var to point to your config file.
 
@@ -28,7 +28,7 @@ smtp:
   host: ""
   port: 587
   user: ""
-  # password loaded from GPS_SMTP_PASSWORD env var or .secrets file
+  # password loaded from MOOSE_SMTP_PASSWORD env var or .secrets file
   from_name: ""
   from_email: ""
   use_tls: true
@@ -75,18 +75,18 @@ plugins:
   crm: { enabled: false }
   telegram:
     enabled: false
-    # token loaded from GPS_TELEGRAM_TOKEN env var
+    # token loaded from MOOSE_TELEGRAM_TOKEN env var
   slack:
     enabled: false
-    # bot_token loaded from GPS_SLACK_BOT_TOKEN env var
-    # app_token loaded from GPS_SLACK_APP_TOKEN env var
+    # bot_token loaded from MOOSE_SLACK_BOT_TOKEN env var
+    # app_token loaded from MOOSE_SLACK_APP_TOKEN env var
   blender:
     enabled: false
     blender_path: ""           # Override path to Blender executable (auto-detected if empty)
   printing:
     enabled: false
     printer_ip: ""             # Bambu Lab printer IP address
-    # access_code loaded from GPS_PRINTER_ACCESS_CODE env var, or set here
+    # access_code loaded from MOOSE_PRINTER_ACCESS_CODE env var, or set here
     access_code: ""
     serial: ""                 # Printer serial number (for MQTT topic routing)
     ftps_port: 990             # FTPS port (default 990 for Bambu Labs)

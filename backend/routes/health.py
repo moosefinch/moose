@@ -5,7 +5,7 @@ import time
 
 from fastapi import APIRouter, Depends
 
-from auth import verify_api_key, get_core, GPS_API_KEY
+from auth import verify_api_key, get_core, MOOSE_API_KEY
 from db import db_connection
 from tools import DB_PATH
 
@@ -35,7 +35,7 @@ async def rotate_api_key():
 
     new_key = secrets.token_urlsafe(32)
     new_hash = _hl.sha256(new_key.encode()).hexdigest()
-    old_hash = _hl.sha256(GPS_API_KEY.encode()).hexdigest()
+    old_hash = _hl.sha256(MOOSE_API_KEY.encode()).hexdigest()
 
     with db_connection() as conn:
         conn.execute(
@@ -47,10 +47,10 @@ async def rotate_api_key():
         conn.commit()
 
     # Update file and in-memory key
-    key_path = Path(__file__).parent.parent / ".gps_api_key"
+    key_path = Path(__file__).parent.parent / ".moose_api_key"
     key_path.write_text(new_key)
     key_path.chmod(0o600)
-    _auth.GPS_API_KEY = new_key
+    _auth.MOOSE_API_KEY = new_key
 
     return {"new_key": new_key, "old_key_valid_until": now + grace_period}
 

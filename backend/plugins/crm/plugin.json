@@ -3,7 +3,7 @@
   "name": "CRM & Marketing",
   "version": "1.0.0",
   "description": "Outreach, content creation, campaign management, and ICP targeting",
-  "author": "GPS Core",
+  "author": "Moose",
   "provides": ["agents", "tools", "db"],
   "dependencies": []
 }

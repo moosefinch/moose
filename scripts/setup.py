@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-General Prime Secure — Interactive Setup Wizard.
+Moose — Interactive Setup Wizard.
 
-Generates profile.yaml and .gps_api_key for a fresh installation.
+Generates profile.yaml and .moose_api_key for a fresh installation.
 Run: python scripts/setup.py
 """
 
@@ -18,9 +18,9 @@ import yaml
 PROJECT_ROOT = Path(__file__).parent.parent
 BACKEND_DIR = PROJECT_ROOT / "backend"
 PROFILE_PATH = PROJECT_ROOT / "profile.yaml"
-API_KEY_PATH = BACKEND_DIR / ".gps_api_key"
-PLIST_TEMPLATE = PROJECT_ROOT / "com.gps.backend.plist.template"
-PLIST_OUTPUT = Path.home() / "Library" / "LaunchAgents" / "com.gps.backend.plist"
+API_KEY_PATH = BACKEND_DIR / ".moose_api_key"
+PLIST_TEMPLATE = PROJECT_ROOT / "com.moose.backend.plist.template"
+PLIST_OUTPUT = Path.home() / "Library" / "LaunchAgents" / "com.moose.backend.plist"
 
 
 def _input(prompt: str, default: str = "") -> str:
@@ -131,7 +131,7 @@ def _generate_plist(install_dir: str, user_home: str, log_dir: str):
 
 def main():
     print("=" * 60)
-    print("  General Prime Secure — Setup Wizard")
+    print("  Moose — Setup Wizard")
     print("=" * 60)
     print()
 

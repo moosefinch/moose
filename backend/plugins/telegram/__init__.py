@@ -1,7 +1,7 @@
 """
-Telegram Plugin — connects GPS to Telegram via polling bot.
+Telegram Plugin — connects Moose to Telegram via polling bot.
 
-Requires GPS_TELEGRAM_TOKEN env var.
+Requires MOOSE_TELEGRAM_TOKEN env var.
 """
 
 import logging
@@ -42,9 +42,9 @@ async def start(agent_core) -> None:
     """Start the Telegram bot bridge."""
     global _bridge
     import os
-    token = os.environ.get("GPS_TELEGRAM_TOKEN", "")
+    token = os.environ.get("MOOSE_TELEGRAM_TOKEN", "")
     if not token:
-        logger.info("Telegram plugin: GPS_TELEGRAM_TOKEN not set, skipping")
+        logger.info("Telegram plugin: MOOSE_TELEGRAM_TOKEN not set, skipping")
         return
 
     try:

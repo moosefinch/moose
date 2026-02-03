@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== GPS Daemon Installer ==="
+echo "=== Moose Daemon Installer ==="
 echo ""
 
 # Detect INSTALL_DIR from this script's location
@@ -9,10 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INSTALL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 USER_HOME="$HOME"
-LOG_DIR="$USER_HOME/Library/Logs/gps"
+LOG_DIR="$USER_HOME/Library/Logs/moose"
 
-PLIST_TEMPLATE="$INSTALL_DIR/com.gps.backend.plist.template"
-PLIST_DST="$USER_HOME/Library/LaunchAgents/com.gps.backend.plist"
+PLIST_TEMPLATE="$INSTALL_DIR/com.moose.backend.plist.template"
+PLIST_DST="$USER_HOME/Library/LaunchAgents/com.moose.backend.plist"
 FRONTEND_DIR="$INSTALL_DIR/frontend"
 
 if [ ! -f "$PLIST_TEMPLATE" ]; then
@@ -44,8 +44,8 @@ echo "      Plist written to $PLIST_DST"
 
 # 4. Stop existing service if running, then load
 echo "[4/5] Installing launchd service..."
-if launchctl list 2>/dev/null | grep -q "com.gps.backend"; then
-    echo "      Stopping existing GPS service..."
+if launchctl list 2>/dev/null | grep -q "com.moose.backend"; then
+    echo "      Stopping existing Moose service..."
     launchctl unload "$PLIST_DST" 2>/dev/null || true
 fi
 launchctl load "$PLIST_DST"
@@ -56,16 +56,16 @@ sleep 3
 
 if curl -s http://127.0.0.1:8000/health > /dev/null 2>&1; then
     echo ""
-    echo "=== GPS daemon is running ==="
+    echo "=== Moose daemon is running ==="
     echo "Backend:  http://127.0.0.1:8000"
     echo "Health:   http://127.0.0.1:8000/health"
-    echo "Logs:     $LOG_DIR/gps-backend.log"
-    echo "Errors:   $LOG_DIR/gps-backend-error.log"
+    echo "Logs:     $LOG_DIR/moose-backend.log"
+    echo "Errors:   $LOG_DIR/moose-backend-error.log"
     echo ""
-    echo "GPS will survive terminal close and auto-start on reboot."
+    echo "Moose will survive terminal close and auto-start on reboot."
 else
     echo ""
-    echo "WARNING: GPS may still be starting. Check logs:"
-    echo "  tail -f $LOG_DIR/gps-backend.log"
-    echo "  tail -f $LOG_DIR/gps-backend-error.log"
+    echo "WARNING: Moose may still be starting. Check logs:"
+    echo "  tail -f $LOG_DIR/moose-backend.log"
+    echo "  tail -f $LOG_DIR/moose-backend-error.log"
 fi

@@ -16,6 +16,7 @@ interface Props {
   onEditEmail: (id: string) => void
   onApproveContent: (id: string) => void
   onRejectContent: (id: string) => void
+  embedded?: boolean
 }
 
 export function MarketingDrawer({
@@ -23,17 +24,18 @@ export function MarketingDrawer({
   pendingEmails, pendingContent, stats,
   onApproveEmail, onRejectEmail, onEditEmail,
   onApproveContent, onRejectContent,
+  embedded,
 }: Props) {
   const [tab, setTab] = useState<Tab>('emails')
 
   useEffect(() => {
-    if (!open) return
+    if (!open || embedded) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
+  }, [open, onClose, embedded])
 
   if (!open) return null
 
@@ -46,18 +48,16 @@ export function MarketingDrawer({
     cursor: 'pointer' as const, fontFamily: 'var(--font)',
   })
 
-  return (
+  const content = (
     <>
-      <div className="drawer-backdrop" onClick={onClose} />
-      <div className="drawer-right" style={{ width: 480 }}>
-        <div style={{
-          padding: '10px 16px', borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0,
-        }}>
-          <span style={{
-            fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)',
-            letterSpacing: '1px',
-          }}>MARKETING</span>
+      <div style={{
+        padding: '10px 16px', borderBottom: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0,
+      }}>
+        <span style={{
+          fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)',
+          letterSpacing: '1px',
+        }}>MARKETING</span>
           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
             <button onClick={() => setTab('emails')} style={tabStyle('emails')}>
               Emails{pendingEmails.length > 0 ? ` (${pendingEmails.length})` : ''}
@@ -69,12 +69,12 @@ export function MarketingDrawer({
               Stats
             </button>
           </div>
-          <button onClick={onClose} style={{
+          {!embedded && <button onClick={onClose} style={{
             marginLeft: 'auto', background: 'none', border: '1px solid var(--border)',
             color: 'var(--text-muted)', fontFamily: 'var(--font)',
             fontSize: '0.7rem', padding: '4px 8px',
             cursor: 'pointer', borderRadius: 'var(--radius-xs)',
-          }}>ESC</button>
+          }}>ESC</button>}
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px' }}>
@@ -167,7 +167,17 @@ export function MarketingDrawer({
             </div>
           )}
         </div>
-      </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>{content}</div>
+  }
+
+  return (
+    <>
+      <div className="drawer-backdrop" onClick={onClose} />
+      <div className="drawer-right" style={{ width: 480 }}>{content}</div>
     </>
   )
 }

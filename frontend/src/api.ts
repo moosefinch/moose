@@ -1,13 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 // API key — read from env var at build time, or sessionStorage at runtime
-let _apiKey: string | null = import.meta.env.VITE_GPS_API_KEY || sessionStorage.getItem('gps_api_key')
+let _apiKey: string | null = import.meta.env.VITE_MOOSE_API_KEY || sessionStorage.getItem('moose_api_key')
 
 export function getApiKey(): string | null { return _apiKey }
 
 export function setApiKey(key: string) {
   _apiKey = key
-  sessionStorage.setItem('gps_api_key', key)
+  sessionStorage.setItem('moose_api_key', key)
 }
 
 /** Fetch an audio URL using header auth, returning an object URL for playback. */

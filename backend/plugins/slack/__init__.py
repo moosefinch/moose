@@ -1,7 +1,7 @@
 """
-Slack Plugin — connects GPS to Slack via Socket Mode.
+Slack Plugin — connects Moose to Slack via Socket Mode.
 
-Requires GPS_SLACK_BOT_TOKEN and GPS_SLACK_APP_TOKEN env vars.
+Requires MOOSE_SLACK_BOT_TOKEN and MOOSE_SLACK_APP_TOKEN env vars.
 """
 
 import logging
@@ -42,10 +42,10 @@ async def start(agent_core) -> None:
     """Start the Slack bot bridge."""
     global _bridge
     import os
-    bot_token = os.environ.get("GPS_SLACK_BOT_TOKEN", "")
-    app_token = os.environ.get("GPS_SLACK_APP_TOKEN", "")
+    bot_token = os.environ.get("MOOSE_SLACK_BOT_TOKEN", "")
+    app_token = os.environ.get("MOOSE_SLACK_APP_TOKEN", "")
     if not bot_token or not app_token:
-        logger.info("Slack plugin: GPS_SLACK_BOT_TOKEN or GPS_SLACK_APP_TOKEN not set, skipping")
+        logger.info("Slack plugin: MOOSE_SLACK_BOT_TOKEN or MOOSE_SLACK_APP_TOKEN not set, skipping")
         return
 
     try:

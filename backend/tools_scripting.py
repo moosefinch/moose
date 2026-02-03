@@ -157,7 +157,7 @@ def _validate_bash_script(script: str) -> None:
 # ── Environment Stripping ──
 
 _SECRET_ENV_PREFIXES = (
-    "GPS_API_KEY", "GPS_SMTP", "GPS_TELEGRAM", "GPS_SLACK",
+    "MOOSE_API_KEY", "MOOSE_SMTP", "MOOSE_TELEGRAM", "MOOSE_SLACK",
     "OPENAI_API", "ANTHROPIC_API", "AWS_SECRET", "AWS_ACCESS",
     "GITHUB_TOKEN", "HOMEBREW_GITHUB",
 )
@@ -242,7 +242,7 @@ def create_and_run_script(interpreter: str, script: str,
     try:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=suffix, dir=str(WORKSPACE_DIR),
-            delete=False, prefix="gps_script_",
+            delete=False, prefix="moose_script_",
         ) as f:
             f.write(script)
             script_path = f.name

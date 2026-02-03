@@ -2,8 +2,8 @@
   "id": "slack",
   "name": "Slack Bot",
   "version": "1.0.0",
-  "description": "Connect GPS to Slack via Socket Mode. Responds to mentions and DMs.",
-  "author": "GPS Core",
+  "description": "Connect Moose to Slack via Socket Mode. Responds to mentions and DMs.",
+  "author": "Moose",
   "provides": ["integration", "db"],
   "dependencies": ["slack-bolt>=1.18.0"]
 }

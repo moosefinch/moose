@@ -17,9 +17,10 @@ interface PluginInfo {
 interface Props {
   open: boolean
   onClose: () => void
+  embedded?: boolean
 }
 
-export function PluginsPanel({ open, onClose }: Props) {
+export function PluginsPanel({ open, onClose, embedded }: Props) {
   const [plugins, setPlugins] = useState<PluginInfo[]>([])
   const [installUrl, setInstallUrl] = useState('')
   const [installing, setInstalling] = useState(false)
@@ -79,10 +80,14 @@ export function PluginsPanel({ open, onClose }: Props) {
 
   return (
     <div style={{
-      position: 'fixed', top: 0, right: 0, width: 420, height: '100vh',
-      background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border)',
-      zIndex: 100, display: 'flex', flexDirection: 'column',
-      boxShadow: '-4px 0 16px rgba(0,0,0,0.3)',
+      position: embedded ? 'relative' : 'fixed',
+      top: embedded ? 'auto' : 0, right: embedded ? 'auto' : 0,
+      width: embedded ? '100%' : 420, height: embedded ? '100%' : '100vh',
+      background: 'var(--bg-secondary)',
+      borderLeft: embedded ? 'none' : '1px solid var(--border)',
+      zIndex: embedded ? 'auto' : 100, display: 'flex', flexDirection: 'column',
+      boxShadow: embedded ? 'none' : '-4px 0 16px rgba(0,0,0,0.3)',
+      flex: embedded ? 1 : undefined, overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{

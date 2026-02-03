@@ -1,0 +1,589 @@
+/* ═══ Page-level layouts ═══ */
+
+.page-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: pageFadeIn 0.15s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ── Dashboard ── */
+.page-dashboard {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-col-left,
+.dashboard-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dashboard-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.dashboard-card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.quick-action-btn:hover {
+    border-color: var(--primary-dim);
+    background: var(--primary-dim);
+}
+
+.quick-action-icon {
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.quick-task-input {
+    display: flex;
+    gap: 8px;
+}
+
+.quick-task-input input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.quick-task-input input:focus {
+    border-color: var(--primary);
+}
+
+.quick-task-input button {
+    padding: 8px 16px;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #000;
+    font-family: var(--font);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.quick-task-input button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* Printer Widget (dashboard) */
+.printer-widget-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.printer-widget-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.printer-widget-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.printer-widget-label {
+    color: var(--text-secondary);
+    min-width: 50px;
+}
+
+.printer-widget-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.printer-widget-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.printer-widget-bar-fill {
+    height: 100%;
+    background: var(--accent-green);
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+
+.printer-widget-pct {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    min-width: 36px;
+    text-align: right;
+}
+
+/* Activity Feed */
+.activity-feed {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.feed-section {
+    margin-bottom: 16px;
+}
+
+.feed-section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feed-badge {
+    background: var(--primary-dim);
+    color: var(--primary);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 0.83rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.feed-item:last-child {
+    border-bottom: none;
+}
+
+.feed-icon {
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.feed-agent {
+    color: var(--primary);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.feed-text {
+    color: var(--text-secondary);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feed-time {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.feed-empty {
+    color: var(--text-muted);
+    font-size: 0.83rem;
+    padding: 8px 0;
+}
+
+.agent-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.agent-chip {
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* ── Viewport ── */
+.page-viewport {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Printer Page ── */
+.page-printer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.printer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.printer-col-left,
+.printer-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.printer-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.printer-card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.printer-offline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.printer-offline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-red);
+}
+
+.printer-status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.printer-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.printer-state-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.printer-state-label {
+    font-weight: 500;
+}
+
+.printer-label {
+    color: var(--text-muted);
+    min-width: 50px;
+}
+
+.printer-value {
+    color: var(--text);
+}
+
+/* Temp gauges */
+.temp-gauge {
+    margin-bottom: 12px;
+}
+
+.temp-gauge:last-child {
+    margin-bottom: 0;
+}
+
+.temp-gauge-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+}
+
+.temp-gauge-label {
+    color: var(--text-secondary);
+}
+
+.temp-gauge-target {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.temp-gauge-bar {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.temp-gauge-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Print progress */
+.print-progress-file {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.print-progress-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.print-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.print-progress-fill {
+    height: 100%;
+    background: var(--accent-green);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.print-progress-pct {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-green);
+    min-width: 48px;
+    text-align: right;
+}
+
+.print-progress-details {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Printer controls */
+.printer-controls-row {
+    display: flex;
+    gap: 8px;
+}
+
+.printer-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.printer-btn:hover {
+    opacity: 0.85;
+}
+
+.printer-btn-primary {
+    background: var(--primary);
+    color: #000;
+}
+
+.printer-btn-danger {
+    background: var(--accent-red);
+    color: #fff;
+}
+
+/* Printer file list */
+.printer-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.printer-file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-xs);
+    font-size: 0.83rem;
+}
+
+.printer-file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+}
+
+.printer-file-size {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+.printer-file-start {
+    background: none;
+    border: none;
+    color: var(--accent-green);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+}
+
+.printer-file-start:hover {
+    color: var(--text);
+}
+
+/* ── More Page ── */
+.page-more {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.more-sub-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.more-sub-tab {
+    padding: 6px 14px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-xs);
+    color: var(--text-secondary);
+    font-family: var(--font);
+    font-size: 0.83rem;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+
+.more-sub-tab:hover {
+    color: var(--text);
+    background: var(--bg-tertiary);
+}
+
+.more-sub-tab.active {
+    color: var(--primary);
+    background: var(--primary-dim);
+}
+
+.more-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.more-chat-layout {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .dashboard-grid,
+    .printer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}

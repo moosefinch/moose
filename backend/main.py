@@ -1,5 +1,5 @@
 """
-GPS — General Prime Secure Multi-Model AI System
+Moose — Local-first, security-centric engineering assistant.
 FastAPI backend with LM Studio HTTP API orchestration.
 """
 
@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from auth import GPS_API_KEY, set_app
+from auth import MOOSE_API_KEY, set_app
 from core import AgentCore
 from schema import init_db
 from routes import register_routes
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     init_db()
-    _redacted = GPS_API_KEY[-4:] if len(GPS_API_KEY) > 4 else "****"
+    _redacted = MOOSE_API_KEY[-4:] if len(MOOSE_API_KEY) > 4 else "****"
     logger.info("API key: ****...%s", _redacted)
     logger.info("Set X-API-Key header to authenticate.")
     core = AgentCore()
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     await core.shutdown()
 
 
-app = FastAPI(title="General Prime Secure", lifespan=lifespan)
+app = FastAPI(title="Moose", lifespan=lifespan)
 set_app(app)
 
 from profile import get_profile as _get_cors_profile

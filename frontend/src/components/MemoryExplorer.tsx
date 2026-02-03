@@ -6,9 +6,10 @@ interface Props {
   onClose: () => void
   memoryCount: number
   onSearch: (query: string, topK?: number) => Promise<MemorySearchResult[]>
+  embedded?: boolean
 }
 
-export function MemoryExplorer({ open, onClose, memoryCount, onSearch }: Props) {
+export function MemoryExplorer({ open, onClose, memoryCount, onSearch, embedded }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<MemorySearchResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -25,13 +26,13 @@ export function MemoryExplorer({ open, onClose, memoryCount, onSearch }: Props) 
   }, [open])
 
   useEffect(() => {
-    if (!open) return
+    if (!open || embedded) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
+  }, [open, onClose, embedded])
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); return }
@@ -52,30 +53,28 @@ export function MemoryExplorer({ open, onClose, memoryCount, onSearch }: Props) 
 
   if (!open) return null
 
-  return (
+  const headerAndContent = (
     <>
-      <div className="drawer-backdrop" onClick={onClose} />
-      <div className="drawer-right">
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 16px', borderBottom: '1px solid var(--border)',
-        }}>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text)' }}>
-              MEMORY
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
-              {memoryCount.toLocaleString()} memories stored
-            </div>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 16px', borderBottom: '1px solid var(--border)',
+      }}>
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text)' }}>
+            MEMORY
           </div>
-          <button onClick={onClose} style={{
-            background: 'none', border: '1px solid var(--border)',
-            color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500,
-            padding: '4px 8px', cursor: 'pointer', borderRadius: 'var(--radius-xs)',
-            fontFamily: 'var(--font)',
-          }}>ESC</button>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
+            {memoryCount.toLocaleString()} memories stored
+          </div>
         </div>
+        {!embedded && <button onClick={onClose} style={{
+          background: 'none', border: '1px solid var(--border)',
+          color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500,
+          padding: '4px 8px', cursor: 'pointer', borderRadius: 'var(--radius-xs)',
+          fontFamily: 'var(--font)',
+        }}>ESC</button>}
+      </div>
 
         {/* Search input */}
         <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)' }}>
@@ -162,7 +161,17 @@ export function MemoryExplorer({ open, onClose, memoryCount, onSearch }: Props) 
             </div>
           ))}
         </div>
-      </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>{headerAndContent}</div>
+  }
+
+  return (
+    <>
+      <div className="drawer-backdrop" onClick={onClose} />
+      <div className="drawer-right">{headerAndContent}</div>
     </>
   )
 }

@@ -22,11 +22,11 @@ class TestPathValidation:
         assert "error" in result.lower()
 
     def test_read_api_key_blocked(self):
-        result = read_file(".gps_api_key")
+        result = read_file(".moose_api_key")
         assert "blocked" in result.lower()
 
     def test_read_smtp_config_blocked(self):
-        result = read_file(".gps_smtp_config")
+        result = read_file(".moose_smtp_config")
         assert "blocked" in result.lower()
 
     def test_read_env_blocked(self):
@@ -61,5 +61,5 @@ class TestPathValidation:
 
     def test_blocked_patterns_exist(self):
         """Verify the blocked pattern sets are populated."""
-        assert ".gps_api_key" in _READ_BLOCKED_PATTERNS
+        assert ".moose_api_key" in _READ_BLOCKED_PATTERNS
         assert ".env" in _READ_BLOCKED_PATTERNS

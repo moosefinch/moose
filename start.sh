@@ -24,7 +24,7 @@ if [ -d "$BACKEND_DIR/.venv" ]; then
     source "$BACKEND_DIR/.venv/bin/activate"
 fi
 
-echo "=== General Prime Secure (Development Mode) ==="
+echo "=== Moose (Development Mode) ==="
 echo ""
 
 # Start backend

@@ -1,11 +1,11 @@
 """
-GPS Daemon — Persistent background process managed by launchd.
+Moose Daemon — Persistent background process managed by launchd.
 
 Responsibilities:
   - Start TTS server as subprocess (port 8787), health-check it
   - Start FastAPI via uvicorn programmatically
   - Signal handling (SIGTERM -> graceful shutdown)
-  - Write PID file to ~/.gps/gps.pid
+  - Write PID file to ~/.moose/moose.pid
 """
 
 import asyncio
@@ -26,10 +26,10 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("gps.daemon")
+logger = logging.getLogger("moose.daemon")
 
-PID_DIR = Path.home() / ".gps"
-PID_FILE = PID_DIR / "gps.pid"
+PID_DIR = Path.home() / ".moose"
+PID_FILE = PID_DIR / "moose.pid"
 TTS_VENV_PYTHON = BACKEND_DIR / ".venv-tts" / "bin" / "python"
 TTS_SERVER_SCRIPT = BACKEND_DIR / "tts_server.py"
 TTS_PORT = 8787
@@ -38,7 +38,7 @@ BACKEND_PORT = 8000
 
 
 def write_pid():
-    """Write current PID to ~/.gps/gps.pid."""
+    """Write current PID to ~/.moose/moose.pid."""
     PID_DIR.mkdir(parents=True, exist_ok=True)
     PID_FILE.write_text(str(os.getpid()))
     logger.info("PID %d written to %s", os.getpid(), PID_FILE)
@@ -128,7 +128,7 @@ def run():
                 tts_proc.kill()
 
         remove_pid()
-        logger.info("GPS daemon stopped")
+        logger.info("Moose daemon stopped")
 
 
 if __name__ == "__main__":

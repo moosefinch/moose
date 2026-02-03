@@ -44,20 +44,20 @@ WORKSPACE_DIR = (BACKEND_DIR / "workspace").resolve()
 
 # Sensitive paths that agents must never READ (secrets, credentials)
 _READ_BLOCKED_PATTERNS = {
-    ".gps_api_key", ".gps_smtp_config",
+    ".moose_api_key", ".moose_smtp_config",
     ".env", ".env.local", ".env.production",
     "credentials.json", "service_account.json",
 }
 
 # Sensitive paths that agents must never write to
 _WRITE_BLOCKED_PATTERNS = {
-    ".gps_api_key", ".gps_smtp_config", "gps.db",
+    ".moose_api_key", ".moose_smtp_config", "moose.db",
     "main.py", "core.py", "config.py", "inference.py", "db.py",
     "tools.py", "tools_desktop.py", "tools_system.py", "tools_content.py",
     "tools_temporal.py", "tools_icp.py", "tools_outreach.py", "tools_scripting.py",
     "email_sender.py", "memory.py", "cognitive_loop.py",
     "daemon.py", "stt.py", "tts.py", "tts_server.py",
-    "com.gps.backend.plist", "start.sh",
+    "com.moose.backend.plist", "start.sh",
 }
 
 
@@ -324,7 +324,7 @@ async def web_search(query: str, engines: str = "", categories: str = "") -> str
 # ── Database ──
 
 def query_database(sql: str) -> str:
-    """Execute a read-only SQL query against gps.db and return the results as JSON. Only single SELECT statements are allowed. Results limited to 500 rows."""
+    """Execute a read-only SQL query against moose.db and return the results as JSON. Only single SELECT statements are allowed. Results limited to 500 rows."""
     if len(sql) > 5000:
         return "Error: query too long (max 5000 chars)."
     sql_clean = sql.strip().rstrip(";")

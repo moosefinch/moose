@@ -1,5 +1,5 @@
 """
-Test fixtures for the General Prime Secure security test suite.
+Test fixtures for the Moose security test suite.
 """
 
 import os

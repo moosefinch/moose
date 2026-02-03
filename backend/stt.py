@@ -1,7 +1,7 @@
 """
 Speech-to-text — lazy-loads faster-whisper for audio transcription.
 
-Model configurable via GPS_WHISPER_MODEL env var (default: "base").
+Model configurable via MOOSE_WHISPER_MODEL env var (default: "base").
 """
 
 import logging
@@ -11,7 +11,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 _model = None
-_model_size = os.environ.get("GPS_WHISPER_MODEL", "base")
+_model_size = os.environ.get("MOOSE_WHISPER_MODEL", "base")
 
 
 def _get_model():
