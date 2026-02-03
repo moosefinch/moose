@@ -67,3 +67,6 @@ backend/memory/SOUL.md
 *.crt
 *.p12
 *.pfx
+
+# Rust build artifacts
+backend/rust_core/target/
