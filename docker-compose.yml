@@ -1,0 +1,15 @@
+services:
+  gps:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./profile.yaml:/app/profile.yaml:ro
+      - gps-data:/app/backend
+    environment:
+      - GPS_API_KEY=${GPS_API_KEY:-}
+      - GPS_SMTP_PASSWORD=${GPS_SMTP_PASSWORD:-}
+    restart: unless-stopped
+
+volumes:
+  gps-data:

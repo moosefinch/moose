@@ -1,0 +1,97 @@
+# General Prime Secure — Profile Configuration
+# Copy this file to profile.yaml and customize for your deployment.
+# Alternatively, set PROFILE_PATH env var to point to your config file.
+
+system:
+  name: "Assistant"              # Display name shown in UI and prompts
+  description: ""                # Brief system description
+
+owner:
+  name: ""                       # Owner/operator name
+  organization: ""               # Organization name
+  focus_areas: []                # List of focus areas (e.g. ["cybersecurity", "legal research"])
+
+company:
+  name: ""                       # Company name (used in outreach/content)
+  domain: ""                     # Company website domain
+  value_proposition: ""          # One-line value prop
+
+web:
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:8000"
+    - "http://127.0.0.1:8000"
+
+smtp:
+  enabled: false
+  host: ""
+  port: 587
+  user: ""
+  # password loaded from GPS_SMTP_PASSWORD env var or .secrets file
+  from_name: ""
+  from_email: ""
+  use_tls: true
+  sends_per_minute: 2
+
+inference:
+  backends:
+    - name: "default"
+      type: "openai"             # openai | ollama | llamacpp
+      endpoint: "http://localhost:1234"
+      enabled: true
+
+  models:
+    primary:
+      model_id: ""
+      backend: "default"
+      vram_gb: 0
+      max_tokens: 4096
+      temperature: 0.7
+    classifier:
+      model_id: ""
+      backend: "default"
+      max_tokens: 10
+      temperature: 0.1
+    security:
+      model_id: ""
+      backend: "default"
+      max_tokens: 4096
+      temperature: 0.3
+    embedder:
+      model_id: ""
+      backend: "default"
+
+agents:
+  hermes:     { enabled: false }
+  classifier: { enabled: true }
+  security:   { enabled: false }
+  coder:      { enabled: false }
+  math:       { enabled: false }
+  reasoner:   { enabled: false }
+  claude:     { enabled: false }
+
+plugins:
+  crm: { enabled: false }
+  telegram:
+    enabled: false
+    # token loaded from GPS_TELEGRAM_TOKEN env var
+  slack:
+    enabled: false
+    # bot_token loaded from GPS_SLACK_BOT_TOKEN env var
+    # app_token loaded from GPS_SLACK_APP_TOKEN env var
+  blender:
+    enabled: false
+    blender_path: ""           # Override path to Blender executable (auto-detected if empty)
+  printing:
+    enabled: false
+    printer_ip: ""             # Bambu Lab printer IP address
+    # access_code loaded from GPS_PRINTER_ACCESS_CODE env var, or set here
+    access_code: ""
+    serial: ""                 # Printer serial number (for MQTT topic routing)
+    ftps_port: 990             # FTPS port (default 990 for Bambu Labs)
+
+prompts:
+  personality: ""                # Injected into presentation prompt
+  domains: ""                    # Domain expertise description
+  # Full prompt overrides: place files in profiles/prompts/<agent_id>.md

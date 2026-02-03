@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; connect-src 'self' ws://localhost:* wss://localhost:* ws://127.0.0.1:* wss://127.0.0.1:*; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <title>General Prime Secure</title>
+</head>
+<body>
+<div id="root"></div>
+<script>
+window.onerror = function(msg, url, line, col, err) {
+  var d = document.createElement('pre');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a0000;color:#ff6666;padding:16px;font-size:13px;font-family:monospace;white-space:pre-wrap;max-height:50vh;overflow:auto;border-bottom:2px solid red';
+  d.textContent = 'RUNTIME ERROR: ' + msg + '\n' + (err && err.stack || '') + '\nLine: ' + line + ' Col: ' + col + '\nURL: ' + url;
+  document.body.prepend(d);
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var d = document.createElement('pre');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a0000;color:#ff6666;padding:16px;font-size:13px;font-family:monospace;white-space:pre-wrap;max-height:50vh;overflow:auto;border-bottom:2px solid red';
+  d.textContent = 'UNHANDLED REJECTION: ' + (e.reason && e.reason.stack || e.reason || e);
+  document.body.prepend(d);
+});
+</script>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

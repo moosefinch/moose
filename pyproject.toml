@@ -1,0 +1,10 @@
+[project]
+name = "general-prime-secure"
+version = "0.1.0"
+description = "Local-first, privacy-first multi-agent AI system"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+asyncio_mode = "auto"

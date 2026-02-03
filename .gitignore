@@ -1,0 +1,69 @@
+# Secrets & credentials
+backend/.gps_api_key
+backend/.gps_smtp_config
+backend/.herald_api_key
+.env
+.env.*
+
+# Database & memory
+backend/gps.db
+backend/gps.db-journal
+backend/gps.db-wal
+backend/gps.db-shm
+backend/herald.db
+backend/herald.db-journal
+backend/herald.db-wal
+backend/herald.db-shm
+backend/memory.jsonl
+
+# Profile (contains SMTP credentials)
+profile.yaml
+
+# Virtual environments
+backend/.venv/
+backend/.venv-tts/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Uploads & generated files
+backend/uploads/
+backend/workspace/
+/tmp/
+
+# TTS models (large binaries)
+models/
+
+# macOS
+*.DS_Store
+._*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# State (contains runtime behavioral data)
+backend/memory/state.json
+backend/memory/system_baseline.json
+backend/memory/SOUL.md
+
+# TLS/SSL certificates and private keys
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
