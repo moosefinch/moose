@@ -2,8 +2,14 @@
 Core package — Multi-agent orchestration engine.
 
 This package provides the AgentCore class and supporting modules.
-The package structure allows for future modularization while maintaining
-backward compatibility with existing imports.
+
+Structure:
+    agent_core.py      — Main AgentCore class (~800 lines, down from 1425)
+    background_tasks.py — BackgroundTask data class
+    state.py           — Persistent state and SOUL.md management
+    classification.py  — Query classification and trivial response handling
+    escalation.py      — Escalation flow and presentation layer
+    chat_pipeline.py   — Main chat() pipeline
 
 Usage:
     from core import AgentCore

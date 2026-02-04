@@ -72,6 +72,7 @@ def _check_lead_rate(ip: str) -> bool:
             conn.commit()
     except Exception as e:
         logger.warning("Rate limit check failed: %s", e)
+        return False
     return True
 
 

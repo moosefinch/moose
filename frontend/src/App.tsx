@@ -40,7 +40,7 @@ export function App() {
 
   const { connected, on, off } = useWebSocket()
   const api = useApi()
-  const chat = useChat()
+  const chat = useChat(api)
   const marketing = useMarketing()
   const scheduling = useScheduledJobs()
   const webhooks = useWebhooks()

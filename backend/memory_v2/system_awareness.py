@@ -433,15 +433,15 @@ class SystemAwareness:
                             name = ?, cmdline = ?, cpu_percent = ?,
                             memory_mb = ?, category = ?, last_seen = unixepoch()
                         WHERE pid = ?
-                    """, info['name'], cmdline, info.get('cpu_percent', 0),
-                        memory_mb, category, pid)
+                    """, (info['name'], cmdline, info.get('cpu_percent', 0),
+                        memory_mb, category, pid))
                 else:
                     self.db.execute("""
                         INSERT INTO process_inventory
                         (pid, name, cmdline, cpu_percent, memory_mb, category)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, pid, info['name'], cmdline, info.get('cpu_percent', 0),
-                        memory_mb, category)
+                    """, (pid, info['name'], cmdline, info.get('cpu_percent', 0),
+                        memory_mb, category))
 
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue

@@ -36,7 +36,7 @@ class ClassifierAgent(BaseAgent):
     async def classify(self, query: str) -> str:
         """Classify a query into TRIVIAL, SIMPLE, or COMPLEX. Returns the tier string."""
         try:
-            prompt = CLASSIFIER_PROMPT.format(query=query[:500])
+            prompt = CLASSIFIER_PROMPT.replace("{query}", query[:500])
             result = await self.call_llm([{"role": "user", "content": prompt}])
             response = result["choices"][0]["message"].get("content", "").strip()
             # Strip Qwen3 thinking tags if present

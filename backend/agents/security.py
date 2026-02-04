@@ -249,6 +249,7 @@ class SecurityAgent(BaseAgent):
 
         self._flags.extend(flags)
         self._reviewed_up_to = now
+        self.audit_queue.clear()
         return flags
 
     def _scan_content(self, msg: AgentMessage) -> list[AuditFlag]:

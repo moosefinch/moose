@@ -51,7 +51,7 @@ _READ_BLOCKED_PATTERNS = {
 
 # Sensitive paths that agents must never write to
 _WRITE_BLOCKED_PATTERNS = {
-    ".moose_api_key", ".moose_smtp_config", "moose.db",
+    ".moose_api_key", ".moose_smtp_config", "gps.db",
     "main.py", "core.py", "config.py", "inference.py", "db.py",
     "tools.py", "tools_desktop.py", "tools_system.py", "tools_content.py",
     "tools_temporal.py", "tools_icp.py", "tools_outreach.py", "tools_scripting.py",

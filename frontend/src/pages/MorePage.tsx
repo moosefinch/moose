@@ -104,7 +104,7 @@ export function MorePage(props: MorePageProps) {
               onOpenMemory={() => setSubPage('memory')}
               onOpenScheduling={() => setSubPage('scheduling')}
               onOpenPlugins={() => setSubPage('plugins')}
-              cognitiveStatus={null}
+              cognitiveStatus={props.cognitiveStatus}
             />
             <ChatPanel
               messages={props.messages}

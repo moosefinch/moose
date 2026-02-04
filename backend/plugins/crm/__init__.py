@@ -29,11 +29,11 @@ def get_tools() -> list:
     tools = []
     try:
         from tools_outreach import (
-            create_campaign, list_campaigns, add_prospect,
+            create_campaign, add_prospect,
             research_company, draft_email, get_campaign_status,
         )
         tools.extend([
-            create_campaign, list_campaigns, add_prospect,
+            create_campaign, add_prospect,
             research_company, draft_email, get_campaign_status,
         ])
     except ImportError:

@@ -17,6 +17,7 @@ export function useApi() {
         const r = await apiFetch('/health')
         setApiUp(r.ok)
         const mr = await apiFetch('/api/models')
+        if (!mr.ok) return
         const md = await mr.json()
         setModelStatus(md.models || {})
       } catch { setApiUp(false) }
@@ -30,6 +31,7 @@ export function useApi() {
   const loadConversations = useCallback(async () => {
     try {
       const r = await apiFetch('/conversations')
+      if (!r.ok) return
       const data = await r.json()
       if (Array.isArray(data)) setConversations(data)
     } catch (e) { console.error('[useApi] Error:', e) }
@@ -38,6 +40,7 @@ export function useApi() {
   const createConversation = useCallback(async () => {
     try {
       const r = await apiFetch('/conversations', { method: 'POST' })
+      if (!r.ok) return null
       const data = await r.json()
       setConversations(prev => [data, ...prev])
       return data as Conversation
@@ -47,6 +50,7 @@ export function useApi() {
   const loadConversationMessages = useCallback(async (convId: string): Promise<ChatMessage[]> => {
     try {
       const r = await apiFetch(`/conversations/${convId}`)
+      if (!r.ok) return []
       const data = await r.json()
       if (data.error) return []
       return (data.messages || []).map((m: Record<string, unknown>) => ({
@@ -82,6 +86,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+    if (!r.ok) throw new Error(`Query failed: ${r.status}`)
     return await r.json()
   }, [])
 
@@ -89,6 +94,7 @@ export function useApi() {
   const loadTasks = useCallback(async () => {
     try {
       const r = await apiFetch('/api/tasks')
+      if (!r.ok) return
       const data = await r.json()
       if (Array.isArray(data)) setTasks(data)
     } catch (e) { console.error('[useApi] Error:', e) }
@@ -116,6 +122,7 @@ export function useApi() {
   const loadBriefings = useCallback(async () => {
     try {
       const r = await apiFetch('/api/briefings')
+      if (!r.ok) return
       const data = await r.json()
       if (Array.isArray(data)) setBriefings(data)
     } catch (e) { console.error('[useApi] Error:', e) }
@@ -143,6 +150,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, conversation_id: conversationId }),
     })
+    if (!r.ok) throw new Error(`Message failed: ${r.status}`)
     return await r.json()
   }, [])
 

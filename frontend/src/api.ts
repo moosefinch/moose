@@ -10,12 +10,18 @@ export function setApiKey(key: string) {
   sessionStorage.setItem('moose_api_key', key)
 }
 
-/** Fetch an audio URL using header auth, returning an object URL for playback. */
+/** Fetch an audio URL using header auth, returning an object URL for playback.
+ *  IMPORTANT: Caller must call URL.revokeObjectURL() when done to avoid memory leaks. */
 export async function fetchAudioUrl(url: string): Promise<string> {
   const resp = await apiFetch(url)
   if (!resp.ok) throw new Error(`Audio fetch failed: ${resp.status}`)
   const blob = await resp.blob()
   return URL.createObjectURL(blob)
+}
+
+/** Revoke an object URL to free memory. Call this when audio playback completes. */
+export function revokeAudioUrl(objectUrl: string): void {
+  URL.revokeObjectURL(objectUrl)
 }
 
 export const apiUrl = (path: string) => `${API_BASE}${path}`

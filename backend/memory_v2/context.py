@@ -350,7 +350,7 @@ class ContextBuilder:
                 languages = json.loads(project_dict["languages"])
                 if languages:
                     lines.append(f"Languages: {', '.join(languages)}")
-            except:
+            except Exception:
                 pass
 
         if project_dict.get("frameworks"):
@@ -358,7 +358,7 @@ class ContextBuilder:
                 frameworks = json.loads(project_dict["frameworks"])
                 if frameworks:
                     lines.append(f"Frameworks: {', '.join(frameworks)}")
-            except:
+            except Exception:
                 pass
 
         if project_dict.get("build_system"):

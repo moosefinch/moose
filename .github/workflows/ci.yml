@@ -52,7 +52,7 @@ jobs:
         run: cargo install cargo-audit
       - name: Audit Rust dependencies
         working-directory: backend/rust_core
-        run: cargo audit || true
+        run: cargo audit
       - name: Build Rust core
         working-directory: backend/rust_core
-        run: cargo build --release || true
+        run: cargo build --release

@@ -302,14 +302,14 @@ for ch_name, ch_agents in _base_channels.items():
 
 # ── Cognitive Loop ──
 COGNITIVE_LOOP_CONFIG = {
-    "enabled": True,
-    "cycle_interval_seconds": 120,
-    "min_interval_seconds": 30,
+    "enabled": _profile.cognitive_loop.enabled,
+    "cycle_interval_seconds": _profile.cognitive_loop.cycle_interval_seconds,
+    "min_interval_seconds": _profile.cognitive_loop.min_interval_seconds,
     "urgent_threshold": 0.8,
     "moderate_threshold": 0.4,
-    "reflection_every_n_cycles": 10,
-    "morning_briefing_hour": 9,
-    "evening_briefing_hour": 18,
+    "reflection_every_n_cycles": _profile.cognitive_loop.reflection_every_n_cycles,
+    "morning_briefing_hour": _profile.cognitive_loop.morning_briefing_hour,
+    "evening_briefing_hour": _profile.cognitive_loop.evening_briefing_hour,
     "auto_draft_content": _profile.plugins.crm.enabled,
     "auto_draft_outreach": _profile.plugins.crm.enabled,
     "watched_directories": [],

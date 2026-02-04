@@ -117,7 +117,7 @@ class OllamaBackend(InferenceBackend):
         for m in data.get("models", []):
             name = m.get("name", "")
             # Strip :latest tag for cleaner model IDs
-            mid = name.rstrip(":latest") if name.endswith(":latest") else name
+            mid = name.removesuffix(":latest")
             models[mid] = {
                 "id": mid,
                 "object": "model",

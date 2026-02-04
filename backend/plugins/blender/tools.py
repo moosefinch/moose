@@ -147,20 +147,26 @@ def blender_create_project(name: str, path: str = "") -> str:
         WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
         path = str(WORKSPACE_DIR / f"{name}.blend")
 
-    # Ensure parent directory exists
-    parent = Path(path).parent
-    parent.mkdir(parents=True, exist_ok=True)
+    # Validate path is within workspace
+    resolved_path = Path(path).resolve()
+    if not resolved_path.is_relative_to(WORKSPACE_DIR.resolve()):
+        return f"Error: path must be within workspace directory: {WORKSPACE_DIR}"
 
+    # Ensure parent directory exists
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use repr() to safely escape the path in the generated script
+    safe_path = repr(str(resolved_path))
     script = f"""
 import bpy
 # Save the default scene as a new project
-bpy.ops.wm.save_as_mainfile(filepath=r"{path}")
-print(f"PROJECT_CREATED: {path}")
+bpy.ops.wm.save_as_mainfile(filepath={safe_path})
+print("PROJECT_CREATED:", {safe_path})
 """
     exit_code, stdout, stderr = _run_blender_script(script)
 
-    if exit_code == 0 and Path(path).exists():
-        return f"Created Blender project: {path}"
+    if exit_code == 0 and resolved_path.exists():
+        return f"Created Blender project: {resolved_path}"
     else:
         error = stderr[-2000:] if stderr else "(no error output)"
         return f"Error creating project: {error}"
@@ -182,23 +188,32 @@ def blender_export_stl(blend_file: str, output_path: str = "",
     if not output_path:
         output_path = str(blend_path.with_suffix(".stl"))
 
+    # Validate output path is within workspace
+    resolved_output = Path(output_path).resolve()
+    if not resolved_output.is_relative_to(WORKSPACE_DIR.resolve()):
+        return f"Error: output path must be within workspace directory: {WORKSPACE_DIR}"
+
     # Ensure parent directory exists
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    resolved_output.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use repr() to safely escape values in the generated script
+    safe_output = repr(str(resolved_output))
 
     if object_name:
+        safe_name = repr(object_name)
         script = f"""
 import bpy
 # Deselect all, then select target object
 bpy.ops.object.select_all(action='DESELECT')
-obj = bpy.data.objects.get("{object_name}")
+obj = bpy.data.objects.get({safe_name})
 if obj is None:
-    print("ERROR: Object '{object_name}' not found")
+    print("ERROR: Object", {safe_name}, "not found")
     import sys
     sys.exit(1)
 obj.select_set(True)
 bpy.context.view_layer.objects.active = obj
-bpy.ops.export_mesh.stl(filepath=r"{output_path}", use_selection=True)
-print(f"EXPORTED: {output_path}")
+bpy.ops.export_mesh.stl(filepath={safe_output}, use_selection=True)
+print("EXPORTED:", {safe_output})
 """
     else:
         script = f"""
@@ -208,8 +223,8 @@ bpy.ops.object.select_all(action='DESELECT')
 for obj in bpy.data.objects:
     if obj.type == 'MESH':
         obj.select_set(True)
-bpy.ops.export_mesh.stl(filepath=r"{output_path}", use_selection=True)
-print(f"EXPORTED: {output_path}")
+bpy.ops.export_mesh.stl(filepath={safe_output}, use_selection=True)
+print("EXPORTED:", {safe_output})
 """
     exit_code, stdout, stderr = _run_blender_script(script, str(blend_path))
 

@@ -176,6 +176,16 @@ class PromptsConfig:
 
 
 @dataclass
+class CognitiveLoopConfig:
+    enabled: bool = False
+    cycle_interval_seconds: int = 120
+    min_interval_seconds: int = 30
+    reflection_every_n_cycles: int = 10
+    morning_briefing_hour: int = 9
+    evening_briefing_hour: int = 18
+
+
+@dataclass
 class Profile:
     system: SystemConfig = field(default_factory=SystemConfig)
     owner: OwnerConfig = field(default_factory=OwnerConfig)
@@ -186,6 +196,7 @@ class Profile:
     agents: AgentsConfig = field(default_factory=AgentsConfig)
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
     prompts: PromptsConfig = field(default_factory=PromptsConfig)
+    cognitive_loop: CognitiveLoopConfig = field(default_factory=CognitiveLoopConfig)
 
     def is_agent_enabled(self, agent_id: str) -> bool:
         """Check if an agent is enabled in the profile."""
@@ -351,6 +362,10 @@ def _load_profile_from_dict(raw: dict) -> Profile:
     # Prompts
     if "prompts" in raw and isinstance(raw["prompts"], dict):
         profile.prompts = _parse_dict(raw["prompts"], PromptsConfig)
+
+    # Cognitive Loop
+    if "cognitive_loop" in raw and isinstance(raw["cognitive_loop"], dict):
+        profile.cognitive_loop = _parse_dict(raw["cognitive_loop"], CognitiveLoopConfig)
 
     return profile
 

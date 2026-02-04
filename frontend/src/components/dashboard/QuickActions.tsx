@@ -3,9 +3,10 @@ import { useState } from 'react'
 interface QuickActionsProps {
   onLaunchTask: (description: string) => void
   onNavigateViewport: () => void
+  onImportFile?: (file: File) => void
 }
 
-export function QuickActions({ onLaunchTask, onNavigateViewport }: QuickActionsProps) {
+export function QuickActions({ onLaunchTask, onNavigateViewport, onImportFile }: QuickActionsProps) {
   const [taskInput, setTaskInput] = useState('')
 
   const handleLaunch = () => {
@@ -27,6 +28,10 @@ export function QuickActions({ onLaunchTask, onNavigateViewport }: QuickActionsP
           const input = document.createElement('input')
           input.type = 'file'
           input.accept = '.stl,.obj,.gltf,.glb,.blend'
+          input.onchange = () => {
+            const file = input.files?.[0]
+            if (file && onImportFile) onImportFile(file)
+          }
           input.click()
         }}>
           <span className="quick-action-icon">&#8689;</span>

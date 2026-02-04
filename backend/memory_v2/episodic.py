@@ -549,7 +549,7 @@ Summary:"""
         )
         self.db.commit()
 
-    def supersede(self, old_id: int, new_content: str, **kwargs) -> int:
+    async def supersede(self, old_id: int, new_content: str, **kwargs) -> int:
         """
         Create a new memory that supersedes an existing one.
         Useful for corrections or updates.
@@ -571,4 +571,4 @@ Summary:"""
         new_kwargs.update(kwargs)
 
         # entity_type and entity_id will trigger automatic supersession
-        return self.store(new_content, **new_kwargs)
+        return await self.store(new_content, **new_kwargs)
