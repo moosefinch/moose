@@ -38,7 +38,10 @@ class ClassifierAgent(BaseAgent):
         try:
             prompt = CLASSIFIER_PROMPT.format(query=query[:500])
             result = await self.call_llm([{"role": "user", "content": prompt}])
-            response = result["choices"][0]["message"].get("content", "").strip().upper()
+            response = result["choices"][0]["message"].get("content", "").strip()
+            # Strip Qwen3 thinking tags if present
+            import re
+            response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL).strip().upper()
             for tier in ("TRIVIAL", "SIMPLE", "COMPLEX"):
                 if tier in response:
                     return tier

@@ -97,7 +97,7 @@ class InferenceRouter:
         models_cfg = inference_cfg.models
 
         # Iterate over the ModelsConfig dataclass fields
-        for key in ("primary", "classifier", "security", "embedder"):
+        for key in ("primary", "conversational", "orchestrator", "classifier", "security", "embedder"):
             model_cfg = getattr(models_cfg, key, None)
             if model_cfg is None:
                 continue

@@ -1,8 +1,9 @@
 import { MessageBubble } from './MessageBubble'
 import { ThinkingIndicator } from './ThinkingIndicator'
 import { ChatInput } from './ChatInput'
+import { AvatarPresence } from './AvatarPresence'
 import { useConfig } from '../contexts/ConfigContext'
-import type { ChatMessage } from '../types'
+import type { ChatMessage, CognitiveStatus } from '../types'
 
 interface Props {
   messages: ChatMessage[]
@@ -13,11 +14,13 @@ interface Props {
   endRef: React.RefObject<HTMLDivElement | null>
   onSend: (text: string) => void
   onVoiceStart?: () => void
+  cognitiveStatus?: CognitiveStatus | null
 }
 
 export function ChatPanel({
   messages, sending, loading,
   activeModel, thinkingElapsed, endRef, onSend, onVoiceStart,
+  cognitiveStatus,
 }: Props) {
   const config = useConfig()
 
@@ -28,10 +31,13 @@ export function ChatPanel({
         <div className="chat-messages-container">
           {messages.length === 0 && !loading && !sending && (
             <div className="chat-empty-state">
+              <AvatarPresence
+                cognitiveStatus={cognitiveStatus ?? null}
+                sending={sending}
+                hasMessages={false}
+                onSend={onSend}
+              />
               <div className="chat-empty-logo">{config.systemName}</div>
-              <div className="chat-empty-hint">
-                Send a message to begin.
-              </div>
             </div>
           )}
 

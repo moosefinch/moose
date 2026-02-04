@@ -22,9 +22,12 @@ API_BASE = _default_backend.endpoint if _default_backend else "http://localhost:
 MODELS = {}
 MODEL_LABELS = {}
 MODEL_VRAM_GB = {}
+MODEL_TIERS = {}  # model_key -> "always_loaded" | "on_demand"
 
 _model_map = {
     "hermes": _profile.inference.models.primary,
+    "conversational": _profile.inference.models.conversational,
+    "orchestrator": _profile.inference.models.orchestrator,
     "classifier": _profile.inference.models.classifier,
     "security": _profile.inference.models.security,
     "embedder": _profile.inference.models.embedder,
@@ -33,13 +36,14 @@ for key, mcfg in _model_map.items():
     if mcfg.model_id:
         MODELS[key] = mcfg.model_id
         MODEL_LABELS[key] = f"{mcfg.model_id} ({key})"
+        MODEL_TIERS[key] = getattr(mcfg, "tier", "on_demand")
         if mcfg.vram_gb:
             MODEL_VRAM_GB[key] = mcfg.vram_gb
 
-# ── Memory Strategy ──
-ALWAYS_LOADED_MODELS = set(MODELS.keys())
-MANAGED_MODELS = set()
-LARGE_MODELS = set()
+# ── Memory Strategy (dynamic — derived from profile tier settings) ──
+ALWAYS_LOADED_MODELS = {k for k, t in MODEL_TIERS.items() if t == "always_loaded"}
+MANAGED_MODELS = {k for k, t in MODEL_TIERS.items() if t == "on_demand"}
+LARGE_MODELS = {k for k in MANAGED_MODELS if MODEL_VRAM_GB.get(k, 0) > 20}
 
 # ── Execution Limits (code constants — not user config) ──
 DEFAULT_TIMEOUT = 300
@@ -49,6 +53,8 @@ MAX_SECURITY_CONSULTATIONS = 5
 # ── Token Limits per model ──
 TOKEN_LIMITS = {
     "hermes": _profile.inference.models.primary.max_tokens or 4096,
+    "conversational": _profile.inference.models.conversational.max_tokens or 2048,
+    "orchestrator": _profile.inference.models.orchestrator.max_tokens or 1024,
     "classifier": _profile.inference.models.classifier.max_tokens or 10,
     "security": _profile.inference.models.security.max_tokens or 4096,
     "planner": 4096,
@@ -58,6 +64,8 @@ TOKEN_LIMITS = {
 # ── Temperature defaults ──
 TEMPERATURE = {
     "hermes": _profile.inference.models.primary.temperature or 0.7,
+    "conversational": _profile.inference.models.conversational.temperature or 0.7,
+    "orchestrator": _profile.inference.models.orchestrator.temperature or 0.3,
     "classifier": _profile.inference.models.classifier.temperature or 0.1,
     "security": _profile.inference.models.security.temperature or 0.3,
     "planner": 0.3,
@@ -69,9 +77,9 @@ CONTEXT_WINDOW_SIZE = 6
 
 # ── Classifier ──
 CLASSIFIER_MODEL = "classifier"
-CLASSIFIER_MAX_TOKENS = 10
+CLASSIFIER_MAX_TOKENS = 32
 CLASSIFIER_TEMPERATURE = 0.1
-TRIVIAL_RESPONSE_MAX_TOKENS = 512
+TRIVIAL_RESPONSE_MAX_TOKENS = 256
 TRIVIAL_RESPONSE_TEMPERATURE = 0.7
 
 # ── Persistent State ──

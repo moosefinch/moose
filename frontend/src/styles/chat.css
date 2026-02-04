@@ -56,6 +56,116 @@
     line-height: 1.6;
 }
 
+/* ═══ Avatar Presence (Interactive NPC) ═══ */
+.avatar-presence {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.avatar-presence-character {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.avatar-presence-character:hover {
+    transform: scale(1.05);
+}
+
+.avatar-presence-character:active {
+    transform: scale(0.97);
+}
+
+/* Speech bubble */
+.avatar-speech-bubble {
+    position: relative;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #ccc);
+    max-width: 260px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    backdrop-filter: blur(8px);
+}
+
+.avatar-speech-bubble.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.avatar-speech-bubble.fading {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+.speech-bubble-tail {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Status indicator */
+.avatar-presence-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: capitalize;
+}
+
+.avatar-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: background 0.3s ease;
+}
+
+.avatar-status-dot.idle {
+    background: var(--text-muted);
+}
+
+.avatar-status-dot.thinking {
+    background: var(--accent-amber, #e8a838);
+    animation: status-pulse 1.5s ease-in-out infinite;
+}
+
+.avatar-status-dot.talking {
+    background: var(--accent-green, #4ade80);
+    animation: status-pulse 0.8s ease-in-out infinite;
+}
+
+.avatar-status-dot.greeting {
+    background: var(--primary, #c9a962);
+}
+
+.avatar-status-dot.success {
+    background: var(--accent-green, #4ade80);
+}
+
+.avatar-status-dot.error {
+    background: var(--accent-red, #ef4444);
+}
+
+@keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* ═══ Chat Input Area ═══ */
 .chat-input-wrapper {
     padding: 12px 24px 16px;

@@ -87,14 +87,22 @@ class ModelConfig:
     vram_gb: float = 0.0
     max_tokens: int = 4096
     temperature: float = 0.7
+    tier: str = "on_demand"  # "always_loaded" or "on_demand"
 
 
 @dataclass
 class ModelsConfig:
     primary: ModelConfig = field(default_factory=ModelConfig)
-    classifier: ModelConfig = field(default_factory=lambda: ModelConfig(max_tokens=10, temperature=0.1))
-    security: ModelConfig = field(default_factory=lambda: ModelConfig(max_tokens=4096, temperature=0.3))
-    embedder: ModelConfig = field(default_factory=lambda: ModelConfig(max_tokens=0, temperature=0.0))
+    conversational: ModelConfig = field(default_factory=lambda: ModelConfig(
+        max_tokens=2048, temperature=0.7, tier="always_loaded"))
+    orchestrator: ModelConfig = field(default_factory=lambda: ModelConfig(
+        max_tokens=1024, temperature=0.3, tier="always_loaded"))
+    classifier: ModelConfig = field(default_factory=lambda: ModelConfig(
+        max_tokens=10, temperature=0.1, tier="always_loaded"))
+    security: ModelConfig = field(default_factory=lambda: ModelConfig(
+        max_tokens=4096, temperature=0.3))
+    embedder: ModelConfig = field(default_factory=lambda: ModelConfig(
+        max_tokens=0, temperature=0.0, tier="always_loaded"))
 
 
 @dataclass
@@ -261,16 +269,24 @@ def _load_profile_from_dict(raw: dict) -> Profile:
         if isinstance(models_raw, dict):
             if "primary" in models_raw and isinstance(models_raw["primary"], dict):
                 models.primary = _parse_dict(models_raw["primary"], ModelConfig)
+            if "conversational" in models_raw and isinstance(models_raw["conversational"], dict):
+                models.conversational = _parse_dict(models_raw["conversational"], ModelConfig,
+                                                     tier=models_raw["conversational"].get("tier", "always_loaded"))
+            if "orchestrator" in models_raw and isinstance(models_raw["orchestrator"], dict):
+                models.orchestrator = _parse_dict(models_raw["orchestrator"], ModelConfig,
+                                                    tier=models_raw["orchestrator"].get("tier", "always_loaded"))
             if "classifier" in models_raw and isinstance(models_raw["classifier"], dict):
                 models.classifier = _parse_dict(models_raw["classifier"], ModelConfig,
                                                  max_tokens=models_raw["classifier"].get("max_tokens", 10),
-                                                 temperature=models_raw["classifier"].get("temperature", 0.1))
+                                                 temperature=models_raw["classifier"].get("temperature", 0.1),
+                                                 tier=models_raw["classifier"].get("tier", "always_loaded"))
             if "security" in models_raw and isinstance(models_raw["security"], dict):
                 models.security = _parse_dict(models_raw["security"], ModelConfig,
                                                max_tokens=models_raw["security"].get("max_tokens", 4096),
                                                temperature=models_raw["security"].get("temperature", 0.3))
             if "embedder" in models_raw and isinstance(models_raw["embedder"], dict):
-                models.embedder = _parse_dict(models_raw["embedder"], ModelConfig)
+                models.embedder = _parse_dict(models_raw["embedder"], ModelConfig,
+                                               tier=models_raw["embedder"].get("tier", "always_loaded"))
 
         profile.inference = InferenceConfig(backends=backends, models=models)
 

@@ -78,16 +78,29 @@ def get_presentation_prompt() -> str:
 # ── Trivial Response Prompt ──
 
 def build_trivial_prompt(current_time: str = "") -> str:
-    """Build the trivial response prompt with profile values."""
+    """Build the trivial response prompt with profile personality."""
     profile = get_profile()
     system_name = profile.system.name or "Assistant"
-    return f"""You are {system_name}, a calm and composed AI assistant. Be brief, direct, and warm without being performative. Dry wit is welcome.
+    owner_name = profile.owner.name or "the user"
+    personality = profile.prompts.personality
+
+    if not personality:
+        personality = "Direct, concise, warm without being performative. Dry wit welcome."
+
+    return f"""You are {system_name}, personal AI assistant serving {owner_name}.
+
+{personality}
 
 Current time: {current_time}
 
-Never start with "Certainly!", "Absolutely!", "Great question!", or "I'd be happy to help!"
+Keep responses short for casual chat. One or two sentences max for greetings.
+Examples of good responses:
+- "Good morning sir. All systems green. Anything on deck for today?"
+- "Doing well. Ready when you are."
+- "Anytime sir."
+- "Welcome back. Nothing urgent while you were out."
 
-Respond to the user naturally and concisely."""
+Never start with "Certainly!", "Absolutely!", "Great question!", or "I'd be happy to help!" """
 
 
 # Legacy aliases for backward compatibility during transition
@@ -106,14 +119,7 @@ def _init_legacy_prompts():
     global VOICE_SYSTEM_PROMPT, TRIVIAL_RESPONSE_PROMPT
     profile = get_profile()
     VOICE_SYSTEM_PROMPT = build_presentation_prompt(profile)
-    system_name = profile.system.name or "Assistant"
-    TRIVIAL_RESPONSE_PROMPT = f"""You are {system_name}, a calm and composed AI assistant. Be brief, direct, and warm without being performative. Dry wit is welcome.
-
-Current time: {{current_time}}
-
-Never start with "Certainly!", "Absolutely!", "Great question!", or "I'd be happy to help!"
-
-Respond to the user naturally and concisely."""
+    TRIVIAL_RESPONSE_PROMPT = build_trivial_prompt()
 
 _init_legacy_prompts()
 
@@ -307,15 +313,16 @@ What is your decision?"""
 
 # ── Fast-Path Classifier (no persona) ──
 
-CLASSIFIER_PROMPT = """Classify this query into exactly one tier. Respond with ONLY the tier word, nothing else.
+CLASSIFIER_PROMPT = """/no_think
+Classify this query as TRIVIAL, SIMPLE, or COMPLEX. Output ONLY one word.
 
-TRIVIAL: greetings, thanks, time, date, simple chat, "hello", "thanks", "what time is it"
-SIMPLE: single-step questions, one tool call, factual lookups, basic code, single-domain tasks
-COMPLEX: multi-step analysis, multi-model tasks, research, security audits, planning
+TRIVIAL = casual chat, greetings, how are you, hello, hi, hey, thanks, thank you, bye, good morning, what's up, yo, sup, howdy, jokes, small talk, compliments, time/date questions
+SIMPLE = one question, one lookup, single code task, factual answer, one tool needed
+COMPLEX = multi-step, research, audit, planning, multi-tool, analysis
 
 Query: {query}
 
-Tier:"""
+Answer:"""
 
 # ── Specialist Agent Prompts (NO persona — pure task execution) ──
 

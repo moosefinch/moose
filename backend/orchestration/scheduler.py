@@ -1,15 +1,13 @@
 """
-GPUScheduler — Manages agent execution with uniform dispatch.
-
-All models are always loaded (Hermes 70B + small MLX fleet). No GPU swapping needed.
-Hermes handles concurrent requests via llama.cpp continuous batching.
+GPUScheduler — Manages agent execution with VRAM-aware model lifecycle.
 
 Architecture:
-  - Hermes 4 70B Q8 (llama.cpp): Central engine, continuous batching
-  - Small MLX models: Classifier 0.6B, Voice 4B, Security 7B, Embedder
-  - All agents dispatch uniformly via asyncio.create_task
-  - Security monitoring: WhiteRabbitNeo V3 7B (always loaded), escalates to user
-  - Synthesis: voice agent presents results
+  - Always-loaded tier: classifier, embedder, conversational, orchestrator
+  - On-demand tier: primary (70B), security, etc. — spun up before dispatch,
+    spun down after cooldown TTL
+  - ModelManager handles all load/unload decisions based on live VRAM monitoring
+  - Agents dispatch via asyncio.create_task with model pre-loading
+  - Security monitoring: escalates to user on critical flags
 """
 
 import asyncio
@@ -30,18 +28,20 @@ from orchestration.messages import (
     AgentMessage, MessageBus, MessageType, MessagePriority,
 )
 from orchestration.workspace import SharedWorkspace
-from config import ALWAYS_LOADED_MODELS, MODEL_LABELS, SECURITY_MONITOR_CONFIG, SECURITY_HEARTBEAT_CONFIG
+from config import MODEL_LABELS, SECURITY_MONITOR_CONFIG, SECURITY_HEARTBEAT_CONFIG
 
 
 class GPUScheduler:
-    """Schedules agent execution with uniform dispatch via asyncio."""
+    """Schedules agent execution with VRAM-aware model lifecycle via asyncio."""
 
     def __init__(self, registry: AgentRegistry, bus: MessageBus,
-                 workspace: SharedWorkspace, agent_core):
+                 workspace: SharedWorkspace, agent_core,
+                 model_manager=None):
         self.registry = registry
         self.bus = bus
         self.workspace = workspace
         self._core = agent_core
+        self.model_manager = model_manager  # VRAM-aware lifecycle manager
         self._missions: dict[str, dict] = {}  # mission_id -> {status, tasks, results, ...}
         self._mission_locks: dict[str, asyncio.Lock] = {}  # mission_id -> lock for level advancement
         self._current_large_agent: Optional[str] = None
@@ -50,7 +50,6 @@ class GPUScheduler:
         self._waiting_agents: dict[str, dict] = {}  # agent_id -> saved state for resume
         self._inflight: dict[str, int] = {}  # agent_id -> running task count
         self._poll_interval = 0.05  # 50ms
-        # Security monitor (WhiteRabbitNeo V3 7B — always loaded)
         self._security_monitor: Optional[BaseAgent] = None
 
     # ── Mission Management ──
@@ -160,8 +159,10 @@ class GPUScheduler:
     async def _run_loop(self):
         """Main scheduling loop — polls for pending messages, dispatches agents.
 
-        All models are always loaded. Uniform dispatch via asyncio.create_task.
-        Hermes handles concurrent requests via llama.cpp continuous batching.
+        Models are loaded on-demand via ModelManager before dispatch.
+        Always-loaded models (classifier, embedder, conversational, orchestrator)
+        stay resident. On-demand models (primary 70B, etc.) spin up before
+        task dispatch and spin down after a cooldown TTL.
         """
         while self._running:
             try:
@@ -200,9 +201,34 @@ class GPUScheduler:
                 await asyncio.sleep(self._poll_interval)
 
     async def _run_agent(self, agent: BaseAgent, message: AgentMessage):
-        """Run an agent on a message, handle the response."""
-        agent.state = AgentState.RUNNING
+        """Run an agent on a message, handle the response.
+
+        Model lifecycle:
+          1. Ensure the agent's model is loaded (via ModelManager)
+          2. Run the agent
+          3. Release the model reference (ModelManager handles unload timing)
+        """
+        model_key = agent.model_key
         mission_id = message.mission_id
+
+        # Ensure model is loaded before dispatch
+        if self.model_manager:
+            loaded = await self.model_manager.ensure_loaded(model_key)
+            if not loaded:
+                logger.error("Cannot load model %s for agent %s — skipping",
+                             model_key, agent.agent_id)
+                error_msg = AgentMessage.create(
+                    msg_type=MessageType.RESULT,
+                    sender=agent.agent_id,
+                    recipient="scheduler",
+                    mission_id=mission_id,
+                    content=f"Model {model_key} unavailable — cannot execute",
+                    payload={"error": True, "task_id": message.payload.get("task_id", "")},
+                )
+                self._handle_agent_response(agent, error_msg)
+                return
+
+        agent.state = AgentState.RUNNING
 
         # Track inflight count for concurrent dispatch
         self._inflight[agent.agent_id] = self._inflight.get(agent.agent_id, 0) + 1
@@ -237,6 +263,9 @@ class GPUScheduler:
             self._handle_agent_response(agent, error_msg)
         finally:
             self._inflight[agent.agent_id] = max(0, self._inflight.get(agent.agent_id, 1) - 1)
+            # Release model reference — ModelManager decides whether to unload
+            if self.model_manager:
+                await self.model_manager.release(model_key)
 
         await self._core.broadcast({
             "type": "agent_event",

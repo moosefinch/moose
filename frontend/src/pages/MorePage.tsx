@@ -6,7 +6,8 @@ import { MemoryExplorer } from '../components/MemoryExplorer'
 import { MarketingDrawer } from '../components/MarketingDrawer'
 import { SchedulingDrawer } from '../components/SchedulingDrawer'
 import { PluginsPanel } from '../components/PluginsPanel'
-import type { ChatMessage, AgentState, ChannelMessage, PendingEmail, ContentDraft, MarketingStats, ScheduledJob, WebhookEndpoint } from '../types'
+import { PrinterPage } from './PrinterPage'
+import type { ChatMessage, AgentState, ChannelMessage, PendingEmail, ContentDraft, MarketingStats, ScheduledJob, WebhookEndpoint, CognitiveStatus } from '../types'
 
 const SUB_TABS: { id: MoreSubPage; label: string }[] = [
   { id: 'chat', label: 'Chat' },
@@ -15,6 +16,7 @@ const SUB_TABS: { id: MoreSubPage; label: string }[] = [
   { id: 'marketing', label: 'Marketing' },
   { id: 'scheduling', label: 'Scheduling' },
   { id: 'plugins', label: 'Plugins' },
+  { id: 'printer', label: '3D Printer' },
 ]
 
 interface MorePageProps {
@@ -51,6 +53,8 @@ interface MorePageProps {
   onRejectEmail: (id: string) => void
   onApproveContent: (id: string) => void
   onRejectContent: (id: string) => void
+  // Cognitive
+  cognitiveStatus: CognitiveStatus | null
   // Scheduling
   jobs: ScheduledJob[]
   onCreateJob: (data: { description: string; schedule_type: string; schedule_value: string }) => void
@@ -111,6 +115,7 @@ export function MorePage(props: MorePageProps) {
               endRef={props.endRef}
               onSend={props.onSend}
               onVoiceStart={props.onVoiceStart}
+              cognitiveStatus={props.cognitiveStatus}
             />
           </div>
         )}
@@ -174,6 +179,10 @@ export function MorePage(props: MorePageProps) {
             onClose={() => setSubPage('chat')}
             embedded
           />
+        )}
+
+        {subPage === 'printer' && (
+          <PrinterPage />
         )}
       </div>
     </div>

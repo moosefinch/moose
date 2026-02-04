@@ -4,7 +4,7 @@ import { useToast } from './contexts/ToastContext'
 import { TabBar } from './components/navigation/TabBar'
 import { DashboardPage } from './pages/DashboardPage'
 import { ViewportPage } from './pages/ViewportPage'
-import { PrinterPage } from './pages/PrinterPage'
+// PrinterPage now rendered inside MorePage as a sub-tab
 import { MorePage } from './pages/MorePage'
 import { AIToast } from './components/ambient/AIToast'
 import { AmbientIndicator } from './components/ambient/AmbientIndicator'
@@ -83,7 +83,7 @@ export function App() {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
-        const pageMap: Record<string, Page> = { '1': 'dashboard', '2': 'viewport', '3': 'printer', '4': 'more' }
+        const pageMap: Record<string, Page> = { '1': 'more', '2': 'dashboard', '3': 'viewport' }
         if (pageMap[e.key]) {
           e.preventDefault()
           setPage(pageMap[e.key])
@@ -136,8 +136,6 @@ export function App() {
 
           {page === 'viewport' && <ViewportPage />}
 
-          {page === 'printer' && <PrinterPage />}
-
           {page === 'more' && (
             <MorePage
               messages={chat.messages}
@@ -148,6 +146,7 @@ export function App() {
               endRef={chat.endRef}
               onSend={chat.sendMessage}
               onVoiceStart={handleVoiceStart}
+              cognitiveStatus={cognitiveStatus}
               conversations={chat.conversations}
               activeConvoId={chat.activeConvoId}
               onSelectConversation={chat.loadConversation}

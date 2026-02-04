@@ -81,12 +81,18 @@ class BaseAgent(ABC):
     # ── Model Lifecycle ──
 
     async def activate(self) -> bool:
-        """No-op — all models are always loaded."""
+        """Ensure this agent's model is loaded via ModelManager."""
+        if hasattr(self._core, 'model_manager') and self._core.model_manager:
+            loaded = await self._core.model_manager.ensure_loaded(self.model_key)
+            self.state = AgentState.IDLE if loaded else AgentState.ERROR
+            return loaded
         self.state = AgentState.IDLE
         return True
 
     async def deactivate(self) -> bool:
-        """No-op — all models are always loaded."""
+        """Release this agent's model reference via ModelManager."""
+        if hasattr(self._core, 'model_manager') and self._core.model_manager:
+            await self._core.model_manager.release(self.model_key)
         self.state = AgentState.IDLE
         return True
 

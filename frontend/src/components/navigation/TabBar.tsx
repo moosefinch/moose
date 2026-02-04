@@ -3,10 +3,9 @@ import type { CognitiveStatus } from '../../types'
 import MooseAvatar, { type AvatarState } from '../MooseAvatar'
 
 const TABS: { id: Page; label: string; shortcut: string }[] = [
-  { id: 'dashboard', label: 'Dashboard', shortcut: '1' },
-  { id: 'viewport', label: 'Viewport', shortcut: '2' },
-  { id: 'printer', label: 'Printer', shortcut: '3' },
-  { id: 'more', label: 'More', shortcut: '4' },
+  { id: 'more', label: 'Home', shortcut: '1' },
+  { id: 'dashboard', label: 'Dashboard', shortcut: '2' },
+  { id: 'viewport', label: 'Viewport', shortcut: '3' },
 ]
 
 interface TabBarProps {

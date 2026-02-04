@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 from config import (
     API_BASE,
     MODELS, MODEL_LABELS,
-    ALWAYS_LOADED_MODELS,
+    ALWAYS_LOADED_MODELS, MANAGED_MODELS,
     DEFAULT_TIMEOUT, MAX_TOOL_ROUNDS,
     TOKEN_LIMITS, TEMPERATURE, CONTEXT_WINDOW_SIZE,
     CLASSIFIER_MAX_TOKENS, CLASSIFIER_TEMPERATURE,
@@ -61,6 +61,7 @@ from agents.registry import AgentRegistry
 from orchestration.messages import MessageBus, AgentMessage, MessageType, MessagePriority
 from orchestration.workspace import SharedWorkspace
 from orchestration.scheduler import GPUScheduler
+from orchestration.model_manager import ModelManager
 from orchestration.channels import ChannelManager
 
 # Import prompts from canonical location — no duplicates here
@@ -175,6 +176,8 @@ class AgentCore:
         # Persistent state
         self._state = self._load_state()
         self._startup_time: Optional[float] = None
+        # Model lifecycle manager
+        self.model_manager: Optional[ModelManager] = None
         # Security heartbeat (set in start())
         self._security_heartbeat = None
         # Loaded plugins
@@ -377,11 +380,17 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             self.memory.set_embedder(API_BASE, MODELS["embedder"])
             logger.info("Memory V1 online (%d entries)", self.memory.count())
 
-        # Initialize agent system
+        # Initialize agent system (creates ModelManager)
         self._init_agent_system()
 
         # Initialize Memory V2
         await self._init_memory_v2()
+
+        # Start model lifecycle manager — loads always-on models
+        if self.model_manager:
+            await self.model_manager.start()
+            logger.info("ModelManager: always-loaded=%s, managed=%s",
+                        sorted(ALWAYS_LOADED_MODELS), sorted(MANAGED_MODELS))
 
         self._ready = True
 
@@ -431,8 +440,23 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             if security_agent:
                 self.bus.register_monitor_hook(security_agent.receive_bus_copy)
 
-            # Initialize scheduler with security monitor reference
-            self.scheduler = GPUScheduler(self.registry, self.bus, self.workspace, self)
+            # Initialize model lifecycle manager
+            system_awareness = None
+            if self.memory_v2 and hasattr(self.memory_v2, '_system'):
+                system_awareness = self.memory_v2._system
+            self.model_manager = ModelManager(
+                self.inference,
+                always_loaded=ALWAYS_LOADED_MODELS,
+                managed=MANAGED_MODELS,
+                system_awareness=system_awareness,
+            )
+            self.model_manager.set_broadcast(self.broadcast)
+
+            # Initialize scheduler with model manager and security monitor
+            self.scheduler = GPUScheduler(
+                self.registry, self.bus, self.workspace, self,
+                model_manager=self.model_manager,
+            )
             if security_agent:
                 self.scheduler.set_security_monitor(security_agent)
 
@@ -512,6 +536,8 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             enabled.append("telegram")
         if profile.plugins.slack.enabled:
             enabled.append("slack")
+        if getattr(profile.plugins, "printing", None) and getattr(profile.plugins.printing, "enabled", False):
+            enabled.append("printing")
 
         if not enabled:
             return
@@ -554,6 +580,9 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             await self.cognitive_loop.stop()
         if self.scheduler:
             self.scheduler.stop_loop()
+        # Stop model lifecycle manager
+        if self.model_manager:
+            await self.model_manager.stop()
         for task in self._tasks.values():
             if task._task and not task._task.done():
                 task._task.cancel()
@@ -652,17 +681,22 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
             return "COMPLEX"
 
     async def _handle_trivial(self, message: str, history: list = None) -> dict:
-        """Handle TRIVIAL queries with presentation prompt — direct response, no coordination.
+        """Handle TRIVIAL queries with always-loaded conversational model.
 
-        Uses the primary model with the trivial response prompt for quick replies.
+        Uses the conversational model (8B, always loaded) for personality-rich
+        instant replies. Falls back to primary if conversational unavailable.
+        No model spin-up required — conversational is always resident.
         """
         t0 = time.time()
         current_time = datetime.now().strftime("%A, %B %d, %Y at %I:%M %p")
 
-        primary_model = MODELS.get("primary")
-        if not primary_model:
+        # Use conversational model (always loaded, 8B) — fast + personality.
+        # Falls back to primary if conversational isn't configured.
+        trivial_model = MODELS.get("conversational") or MODELS.get("primary")
+        model_key = "conversational" if MODELS.get("conversational") else "primary"
+        if not trivial_model:
             return {
-                "content": "No primary model configured.",
+                "content": "No model configured.",
                 "model": "none", "model_key": "none", "error": True,
             }
 
@@ -692,7 +726,7 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
                 await self.broadcast({"type": "stream_chunk", "content": content_chunk})
 
             content = await self.inference.call_llm_stream(
-                primary_model, msgs,
+                trivial_model, msgs,
                 max_tokens=TRIVIAL_RESPONSE_MAX_TOKENS,
                 temperature=TRIVIAL_RESPONSE_TEMPERATURE,
                 on_chunk=on_chunk,
@@ -708,9 +742,9 @@ Monitoring system security and managing tasks. Total uptime: {uptime_hrs} hours.
 
         return {
             "content": content,
-            "model": "primary",
-            "model_key": "primary",
-            "model_label": MODEL_LABELS.get("primary", "Primary"),
+            "model": model_key,
+            "model_key": model_key,
+            "model_label": MODEL_LABELS.get(model_key, model_key.title()),
             "elapsed_seconds": round(elapsed, 2),
             "tool_calls": [],
             "plan": None,
@@ -999,6 +1033,15 @@ Present these findings to the user. Be direct, thorough, and actionable."""
                     "model": "none", "model_key": "none", "error": True,
                 }
 
+            # Ensure the agent's model is loaded before dispatch
+            if self.model_manager:
+                loaded = await self.model_manager.ensure_loaded(agent.model_key)
+                if not loaded:
+                    return {
+                        "content": f"Model '{agent.model_key}' could not be loaded.",
+                        "model": "none", "model_key": "none", "error": True,
+                    }
+
             mission_id = str(uuid.uuid4())[:12]
             task_msg = AgentMessage.create(
                 msg_type=MessageType.TASK,
@@ -1016,12 +1059,19 @@ Present these findings to the user. Be direct, thorough, and actionable."""
                 },
             )
 
-            response = await agent.run(task_msg, self.bus, self.workspace)
+            try:
+                response = await agent.run(task_msg, self.bus, self.workspace)
+            finally:
+                # Release model reference after agent completes
+                if self.model_manager:
+                    await self.model_manager.release(agent.model_key)
+
             raw_content = response.content if response else "No response"
             tool_calls = response.payload.get("tool_calls", []) if response else []
 
-            # Optional presentation layer — format raw agent output
-            content = await self._present(message, raw_content, history)
+            # Skip presentation layer for immediate tasks — agent output is the response.
+            # Presentation adds another full 70b round-trip which doubles latency.
+            content = raw_content
 
             elapsed = time.time() - t0
 
@@ -1329,12 +1379,21 @@ Present these findings to the user. Be direct, thorough, and actionable."""
             if state == "unknown":
                 state = self.model_states.get(key, "missing")
 
+            # Enrich with ModelManager state if available
+            tier = "always_loaded" if key in ALWAYS_LOADED_MODELS else "on_demand"
+            refs = 0
+            if self.model_manager:
+                refs = self.model_manager.get_ref_count(key)
+                if self.model_manager.is_loaded(key):
+                    state = "loaded"
+
             models[key] = {
                 "id": model_id,
                 "label": MODEL_LABELS.get(key, key),
                 "loaded": state == "loaded",
                 "state": state,
-                "managed": False,
+                "tier": tier,
+                "refs": refs,
             }
 
         active_tasks = sum(1 for t in self._tasks.values() if t.status == "running")
@@ -1348,9 +1407,13 @@ Present these findings to the user. Be direct, thorough, and actionable."""
         # Memory V2 stats
         memory_v2_stats = self.get_memory_v2_stats()
 
+        # Model lifecycle status
+        model_lifecycle = self.model_manager.get_status() if self.model_manager else None
+
         return {
             "ready": self._ready,
             "models": models,
+            "model_lifecycle": model_lifecycle,
             "memory_entries": self.memory.count(),
             "memory_v2": memory_v2_stats,
             "connected_clients": len(self.ws_clients),

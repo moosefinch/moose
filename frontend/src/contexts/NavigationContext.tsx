@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 
-export type Page = 'dashboard' | 'viewport' | 'printer' | 'more'
-export type MoreSubPage = 'chat' | 'channels' | 'memory' | 'marketing' | 'scheduling' | 'plugins'
+export type Page = 'dashboard' | 'viewport' | 'more'
+export type MoreSubPage = 'chat' | 'channels' | 'memory' | 'marketing' | 'scheduling' | 'plugins' | 'printer'
 
 interface NavigationState {
   page: Page
@@ -14,7 +14,7 @@ interface NavigationState {
 const NavigationContext = createContext<NavigationState | null>(null)
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
-  const [page, setPageState] = useState<Page>('dashboard')
+  const [page, setPageState] = useState<Page>('more')
   const [subPage, setSubPage] = useState<MoreSubPage>('chat')
 
   const setPage = useCallback((p: Page) => setPageState(p), [])

@@ -2,8 +2,10 @@
 backend/.gps_api_key
 backend/.gps_smtp_config
 backend/.herald_api_key
+backend/.moose_api_key
 .env
 .env.*
+frontend/.env
 
 # Database & memory
 backend/gps.db
@@ -15,6 +17,8 @@ backend/herald.db-journal
 backend/herald.db-wal
 backend/herald.db-shm
 backend/memory.jsonl
+backend/memory_v2.db
+backend/memory_v2.db-*
 
 # Profile (contains SMTP credentials)
 profile.yaml
