@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moose — Personal AI That Looks Out For You | FAESR</title>
+  <meta name="description" content="Moose is a local-first personal AI that advocates for you and your family. Your data never leaves your hardware. Built by FAESR, a nonprofit R&D foundation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0908;
+      --bg-elevated: #12100e;
+      --bg-surface: #1a1613;
+
+      --gold: #c9a962;
+      --gold-light: #d4c4a8;
+      --gold-pale: #e0d5c3;
+      --gold-dark: #a68b4b;
+
+      --green-deep: #162822;
+      --green-mid: #2d4a3e;
+      --green-accent: #4a6b5a;
+
+      --text: #f2ebe0;
+      --text-secondary: #9a8b74;
+      --text-muted: #6a5d50;
+
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(201,169,98,0.25);
+
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection { background: var(--gold); color: var(--bg); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(201,169,98,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(201,169,98,0.35); }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ═══ NOISE ═══ */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.012;
+      pointer-events: none;
+      z-index: 1000;
+      mix-blend-mode: overlay;
+    }
+
+    /* ═══ NAV ═══ */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: linear-gradient(180deg, rgba(10,9,8,0.85) 0%, rgba(10,9,8,0.95) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .nav.scrolled {
+      padding: 0.7rem 2rem;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+    }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .nav-brand-icon {
+      width: 36px; height: 36px;
+    }
+
+    .nav-brand-text {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.03em;
+    }
+
+    .nav-links {
+      display: flex; gap: 2rem; align-items: center;
+    }
+
+    .nav-links a {
+      font-size: 0.85rem; font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-github {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-github:hover {
+      border-color: var(--gold-dark);
+      color: var(--text) !important;
+    }
+
+    .nav-github svg { width: 16px; height: 16px; }
+
+    .mobile-menu-btn {
+      display: none;
+      flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 5px;
+    }
+
+    .mobile-menu-btn span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed; top: 65px; left: 0; right: 0;
+      background: rgba(10,9,8,0.98);
+      backdrop-filter: blur(20px);
+      padding: 1.5rem; z-index: 99;
+      flex-direction: column; gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-menu a {
+      padding: 0.75rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    .mobile-menu a:hover { color: var(--gold); }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: flex; }
+    }
+
+    /* ═══ HERO ═══ */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 8rem 2rem 6rem;
+      position: relative; overflow: hidden;
+    }
+
+    .ambient-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(120px); pointer-events: none;
+      animation: orb-drift 25s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 500px; height: 500px;
+      top: -10%; right: -5%;
+      background: rgba(42,74,62,0.25);
+    }
+
+    .orb-2 {
+      width: 400px; height: 400px;
+      bottom: -15%; left: -5%;
+      background: rgba(46,37,31,0.25);
+      animation-delay: -8s;
+    }
+
+    .orb-3 {
+      width: 300px; height: 300px;
+      top: 40%; left: 50%;
+      background: rgba(201,169,98,0.04);
+      animation-delay: -16s;
+    }
+
+    @keyframes orb-drift {
+      0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+      33% { transform: translate(30px, -20px) scale(1.05); opacity: 0.9; }
+      66% { transform: translate(-20px, 15px) scale(0.95); opacity: 0.6; }
+    }
+
+    .hero-inner {
+      max-width: 820px; margin: 0 auto;
+      text-align: center; position: relative;
+    }
+
+    .moose-avatar {
+      width: 150px; height: 150px;
+      margin: 0 auto 2.5rem;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+      animation: float 7s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .hero-tagline {
+      font-size: 0.75rem; font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-light) 25%, var(--gold) 50%, var(--gold-light) 75%, var(--gold-pale) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 200% center; }
+      50% { background-position: 0% center; }
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px; margin: 0 auto 2.5rem;
+      line-height: 1.8;
+    }
+
+    .hero-buttons {
+      display: flex; gap: 1rem;
+      justify-content: center; flex-wrap: wrap;
+    }
+
+    .hero-note {
+      margin-top: 3rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .hero-note strong {
+      color: var(--green-accent); font-weight: 600;
+    }
+
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      animation: scroll-bounce 2.5s ease-in-out infinite;
+    }
+
+    .scroll-hint svg {
+      width: 24px; height: 24px;
+      stroke: var(--gold); opacity: 0.4;
+    }
+
+    @keyframes scroll-bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+      50% { transform: translateX(-50%) translateY(8px); opacity: 0.7; }
+    }
+
+    /* ═══ BUTTONS ═══ */
+    .btn-glossy {
+      position: relative;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: linear-gradient(175deg, var(--gold-light) 0%, var(--gold) 35%, var(--gold-dark) 100%);
+      color: var(--bg);
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 24px rgba(166,139,75,0.2), inset 0 1px rgba(255,255,255,0.25);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .btn-glossy::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+      border-radius: inherit;
+    }
+
+    .btn-glossy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.25), 0 12px 32px rgba(166,139,75,0.3), inset 0 1px rgba(255,255,255,0.3);
+    }
+
+    .btn-glossy svg { width: 18px; height: 18px; }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      font-weight: 500; font-size: 0.95rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px rgba(255,255,255,0.02);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      cursor: pointer;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: inset 0 1px rgba(255,255,255,0.02), 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .btn-outline svg { width: 18px; height: 18px; }
+
+    .btn-large {
+      padding: 1rem 2.5rem;
+      font-size: 1.05rem;
+    }
+
+    /* ═══ LAYOUT ═══ */
+    section { padding: 7rem 2rem; position: relative; }
+    .container { max-width: 1080px; margin: 0 auto; }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(201,169,98,0.12) 15%, rgba(201,169,98,0.2) 50%, rgba(201,169,98,0.12) 85%, transparent 100%);
+    }
+
+    .section-tag {
+      font-size: 0.72rem; font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      line-height: 1.8;
+    }
+
+    .section-header-center {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-header-center .section-sub {
+      margin: 0 auto;
+    }
+
+    /* ═══ GLASS CARD ═══ */
+    .glass-card {
+      position: relative;
+      background: linear-gradient(165deg, rgba(42,74,62,0.08) 0%, rgba(18,16,14,0.75) 40%, rgba(18,16,14,0.85) 100%);
+      backdrop-filter: blur(12px) saturate(130%);
+      -webkit-backdrop-filter: blur(12px) saturate(130%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.14);
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.06) 80%, transparent);
+      pointer-events: none;
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    /* ═══ WHO SECTION ═══ */
+    .who-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2.5rem; max-width: 960px; margin: 0 auto;
+    }
+
+    .who-label {
+      font-size: 0.72rem; font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid;
+    }
+
+    .yes-label { color: var(--green-accent); border-color: rgba(74,107,90,0.35); }
+    .no-label { color: #c45c5c; border-color: rgba(196,92,92,0.25); }
+
+    .who-col p {
+      font-size: 0.92rem; color: var(--text-secondary);
+      line-height: 1.8; margin-bottom: 1rem;
+    }
+
+    .who-col p:last-child { margin-bottom: 0; }
+    .who-col em { font-style: italic; color: var(--gold-light); }
+    .who-no p:last-child { font-size: 0.82rem; color: var(--text-muted); font-style: italic; }
+
+    /* ═══ PROBLEM ═══ */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+
+    .problem-card { padding: 2rem; position: relative; z-index: 1; }
+
+    .problem-card .icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1.2rem;
+    }
+
+    .icon-red { background: linear-gradient(145deg, rgba(196,92,92,0.12), rgba(196,92,92,0.04)); border: 1px solid rgba(196,92,92,0.18); }
+    .icon-amber { background: linear-gradient(145deg, rgba(201,169,98,0.12), rgba(201,169,98,0.04)); border: 1px solid rgba(201,169,98,0.18); }
+    .icon-grey { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border: 1px solid var(--border); }
+
+    .problem-card h3 {
+      font-size: 1.05rem; font-weight: 600;
+      margin-bottom: 0.6rem; color: var(--text);
+    }
+
+    .problem-card p {
+      font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;
+    }
+
+    /* ═══ ADVOCACY ═══ */
+    .advocacy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+
+    .advocacy-card { padding: 2rem; position: relative; z-index: 1; }
+
+    .advocacy-card .level {
+      font-size: 0.7rem; font-weight: 500;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.8rem;
+    }
+
+    .advocacy-card h3 {
+      font-size: 1.05rem; font-weight: 600;
+      margin-bottom: 0.6rem; color: var(--text);
+    }
+
+    .advocacy-card p {
+      font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7;
+    }
+
+    /* ═══ FAMILIES ═══ */
+    .families-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3rem; margin-top: 3rem; align-items: start;
+    }
+
+    .families-text h3 {
+      font-size: 1.2rem; font-weight: 600;
+      color: var(--gold-light);
+      margin-bottom: 0.8rem; margin-top: 2.5rem;
+    }
+
+    .families-text h3:first-child { margin-top: 0; }
+
+    .families-text p {
+      font-size: 0.9rem; color: var(--text-secondary);
+      line-height: 1.8; margin-bottom: 0.8rem;
+    }
+
+    .example-quote {
+      border-left: 3px solid rgba(201,169,98,0.3);
+      padding-left: 1rem;
+      font-style: italic;
+      color: var(--text) !important;
+    }
+
+    .families-aside {
+      border-radius: 16px; padding: 2rem;
+      position: sticky; top: 6rem;
+    }
+
+    .families-aside h4 {
+      font-size: 1rem; font-weight: 600;
+      color: var(--gold); margin-bottom: 1.5rem;
+    }
+
+    .profile-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .profile-item:last-child { border-bottom: none; }
+    .profile-name { font-weight: 600; font-size: 0.88rem; color: var(--text); }
+    .profile-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; line-height: 1.6; }
+    .profile-threshold { font-size: 0.7rem; color: var(--green-accent); margin-top: 0.3rem; letter-spacing: 0.03em; }
+
+    /* ═══ CAPABILITIES ═══ */
+    .cap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+
+    .cap-card { padding: 1.8rem; position: relative; z-index: 1; }
+    .cap-card .cap-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .cap-card h3 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
+    .cap-card p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; }
+
+    /* ═══ ARCHITECTURE ═══ */
+    .arch-columns {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3rem; margin-top: 3rem;
+    }
+
+    .arch-block h3 { font-size: 1.05rem; font-weight: 600; color: var(--gold-light); margin-bottom: 0.8rem; }
+    .arch-block p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1rem; }
+
+    .arch-list { list-style: none; padding: 0; }
+    .arch-list li {
+      font-size: 0.85rem; color: var(--text-secondary);
+      padding: 0.5rem 0 0.5rem 1.4rem;
+      position: relative; line-height: 1.5;
+    }
+    .arch-list li::before {
+      content: '';
+      position: absolute; left: 0; top: 0.85rem;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-accent);
+      box-shadow: 0 0 6px rgba(74,107,90,0.4);
+    }
+
+    /* ═══ PRINCIPLES ═══ */
+    .principle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem; margin-top: 3rem;
+    }
+
+    .principle { padding: 2rem; }
+    .principle .num {
+      font-size: 2rem; font-weight: 300;
+      background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1; margin-bottom: 1rem;
+    }
+    .principle h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.6rem; }
+    .principle p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; }
+
+    /* ═══ CTA ═══ */
+    .start-box {
+      position: relative;
+      background: linear-gradient(165deg, rgba(42,74,62,0.1) 0%, rgba(18,16,14,0.8) 40%, rgba(18,16,14,0.9) 100%);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4rem; text-align: center; overflow: hidden;
+    }
+
+    .start-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,169,98,0.12) 30%, rgba(201,169,98,0.2) 50%, rgba(201,169,98,0.12) 70%, transparent);
+      pointer-events: none;
+    }
+
+    .start-box::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(201,169,98,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .start-box h2 {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700; color: var(--text);
+      margin-bottom: 1rem; position: relative;
+    }
+
+    .start-box > p {
+      font-size: 0.95rem; color: var(--text-secondary);
+      max-width: 500px; margin: 0 auto 2rem;
+      position: relative;
+    }
+
+    .start-ctas {
+      display: flex; gap: 1rem; justify-content: center;
+      flex-wrap: wrap; position: relative;
+    }
+
+    .start-note {
+      text-align: center; margin-top: 2rem;
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      padding: 3rem 2rem;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(180deg, transparent 0%, rgba(18,16,14,0.5) 100%);
+    }
+
+    .footer-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+
+    .footer-brand-block { display: flex; align-items: center; gap: 0.5rem; }
+    .footer-brand-text { font-weight: 600; color: var(--text); font-size: 0.92rem; }
+    .footer-brand-text span {
+      display: block; font-weight: 400;
+      font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;
+      max-width: 400px; line-height: 1.5;
+    }
+
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.82rem; color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-links svg { width: 18px; height: 18px; }
+
+    /* ═══ ANIMATIONS ═══ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .body-group { animation: idle-breathe 5s ease-in-out infinite; }
+    .wing-left { animation: idle-wing-l 6s ease-in-out infinite; }
+    .wing-right { animation: idle-wing-r 6s ease-in-out infinite; }
+    .tail-feathers { animation: idle-tail 7s ease-in-out infinite; }
+    .antler-tip { animation: tip-pulse 1.5s ease-in-out infinite; }
+
+    @keyframes idle-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+    @keyframes idle-wing-l { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-2deg); } }
+    @keyframes idle-wing-r { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(2deg); } }
+    @keyframes idle-tail { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(1deg); } }
+    @keyframes tip-pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      html { font-size: 15px; }
+      .hero { padding: 7rem 1.5rem 4rem; }
+      .who-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .families-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .families-aside { position: static; }
+      .arch-columns { grid-template-columns: 1fr; }
+      .start-box { padding: 2.5rem 1.5rem; }
+      section { padding: 5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="/" class="nav-brand">
+      <svg class="nav-brand-icon" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="n-fur" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#a69076"/><stop offset="100%" stop-color="#8b7355"/></linearGradient>
+          <linearGradient id="n-antler" x1="50%" y1="100%" x2="50%" y2="0%"><stop offset="0%" stop-color="#9c8b74"/><stop offset="100%" stop-color="#e0d5c3"/></linearGradient>
+        </defs>
+        <ellipse cx="100" cy="85" rx="28" ry="22" fill="#6d5a47"/>
+        <ellipse cx="100" cy="62" rx="30" ry="28" fill="url(#n-fur)"/>
+        <path d="M 78 45 Q 72 30 65 15 M 72 30 Q 60 28 52 22 M 68 38 Q 55 38 45 35" fill="none" stroke="url(#n-antler)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 122 45 Q 128 30 135 15 M 128 30 Q 140 28 148 22 M 132 38 Q 145 38 155 35" fill="none" stroke="url(#n-antler)" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="65" cy="15" r="3" fill="#c9a962"/><circle cx="52" cy="22" r="2.5" fill="#c9a962"/><circle cx="45" cy="35" r="2.5" fill="#c9a962"/>
+        <circle cx="135" cy="15" r="3" fill="#c9a962"/><circle cx="148" cy="22" r="2.5" fill="#c9a962"/><circle cx="155" cy="35" r="2.5" fill="#c9a962"/>
+      </svg>
+      <span class="nav-brand-text">FAESR</span>
+    </a>
+    <div class="nav-links">
+      <a href="#advocacy">Moose</a>
+      <a href="/research">Research</a>
+      <a href="https://github.com/faesr-foundation/moose" target="_blank" rel="noopener noreferrer" class="nav-github">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#advocacy">Moose</a>
+    <a href="/research">Research</a>
+    <a href="https://github.com/faesr-foundation/moose" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+
+    <div class="hero-inner fade-in">
+      <svg class="moose-avatar" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="furMid" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#8b7355"/><stop offset="50%" stop-color="#6d5a47"/><stop offset="100%" stop-color="#4a3d32"/></linearGradient>
+          <linearGradient id="furLight" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#a69076"/><stop offset="100%" stop-color="#8b7355"/></linearGradient>
+          <linearGradient id="furChest" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#d4c4a8"/><stop offset="100%" stop-color="#b8a88c"/></linearGradient>
+          <linearGradient id="antler" x1="50%" y1="100%" x2="50%" y2="0%"><stop offset="0%" stop-color="#6b5d4d"/><stop offset="30%" stop-color="#9c8b74"/><stop offset="70%" stop-color="#c4b59c"/><stop offset="100%" stop-color="#e0d5c3"/></linearGradient>
+          <linearGradient id="wingP" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#2d4a3e"/><stop offset="40%" stop-color="#1f3830"/><stop offset="100%" stop-color="#162822"/></linearGradient>
+          <linearGradient id="wingS" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4a6b5a"/><stop offset="50%" stop-color="#3d5a4a"/><stop offset="100%" stop-color="#2d4a3e"/></linearGradient>
+          <linearGradient id="wingA" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c9a962"/><stop offset="50%" stop-color="#a68b4b"/><stop offset="100%" stop-color="#8b7340"/></linearGradient>
+          <radialGradient id="eyeO" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4a3d28"/><stop offset="100%" stop-color="#2a1f14"/></radialGradient>
+          <radialGradient id="eyeI" cx="30%" cy="30%" r="60%"><stop offset="0%" stop-color="#c9a962"/><stop offset="60%" stop-color="#8b6b2a"/><stop offset="100%" stop-color="#5a4420"/></radialGradient>
+          <linearGradient id="beak" x1="50%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#4a4038"/><stop offset="100%" stop-color="#2d2620"/></linearGradient>
+          <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="tipGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g class="body-group">
+          <g class="tail-feathers" style="transform-origin:100px 160px"><path d="M 85 155 Q 70 170 65 185 Q 80 175 90 165 Z" fill="url(#wingP)"/><path d="M 95 158 Q 90 175 88 192 Q 98 178 100 165 Z" fill="url(#wingS)"/><path d="M 105 158 Q 110 175 112 192 Q 102 178 100 165 Z" fill="url(#wingS)"/><path d="M 115 155 Q 130 170 135 185 Q 120 175 110 165 Z" fill="url(#wingP)"/></g>
+          <g class="wing-left" style="transform-origin:65px 100px"><path d="M 62 90 Q 30 75 15 55 Q 18 70 22 82 Q 8 72 5 85 Q 15 95 25 98 Q 10 100 12 115 Q 25 112 35 108 Q 22 120 30 130 Q 42 122 52 115 Q 45 130 55 138 L 62 115 Z" fill="url(#wingP)"/><path d="M 60 95 Q 40 85 30 75 Q 35 88 40 95 Q 28 92 25 102 Q 38 102 48 100 Q 38 110 45 118 L 58 108 Z" fill="url(#wingS)"/><path d="M 55 92 Q 38 88 28 82" stroke="url(#wingA)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 52 102 Q 35 100 25 98" stroke="url(#wingA)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/></g>
+          <g class="wing-right" style="transform-origin:135px 100px"><path d="M 138 90 Q 170 75 185 55 Q 182 70 178 82 Q 192 72 195 85 Q 185 95 175 98 Q 190 100 188 115 Q 175 112 165 108 Q 178 120 170 130 Q 158 122 148 115 Q 155 130 145 138 L 138 115 Z" fill="url(#wingP)"/><path d="M 140 95 Q 160 85 170 75 Q 165 88 160 95 Q 172 92 175 102 Q 162 102 152 100 Q 162 110 155 118 L 142 108 Z" fill="url(#wingS)"/><path d="M 145 92 Q 162 88 172 82" stroke="url(#wingA)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 148 102 Q 165 100 175 98" stroke="url(#wingA)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/></g>
+          <ellipse cx="100" cy="120" rx="40" ry="42" fill="url(#furMid)"/><ellipse cx="100" cy="130" rx="25" ry="28" fill="url(#furChest)"/><ellipse cx="100" cy="138" rx="18" ry="18" fill="url(#furLight)" opacity="0.5"/>
+          <path d="M 88 118 Q 92 128 88 140" stroke="#c4b49a" stroke-width="1" fill="none" opacity="0.4"/><path d="M 100 115 Q 100 130 100 145" stroke="#c4b49a" stroke-width="1" fill="none" opacity="0.4"/><path d="M 112 118 Q 108 128 112 140" stroke="#c4b49a" stroke-width="1" fill="none" opacity="0.4"/>
+          <ellipse cx="100" cy="85" rx="28" ry="22" fill="url(#furMid)"/><ellipse cx="100" cy="62" rx="30" ry="28" fill="url(#furLight)"/>
+          <path d="M 75 55 Q 85 50 100 48 Q 115 50 125 55 Q 120 62 100 65 Q 80 62 75 55 Z" fill="url(#furMid)" opacity="0.6"/>
+          <g style="transform-origin:72px 42px"><path d="M 72 48 Q 60 35 55 25 Q 52 35 58 45 Q 65 50 72 48 Z" fill="url(#furMid)"/><path d="M 68 45 Q 62 38 60 32" stroke="#d4c4a8" stroke-width="2" fill="none" opacity="0.5"/></g>
+          <g style="transform-origin:128px 42px"><path d="M 128 48 Q 140 35 145 25 Q 148 35 142 45 Q 135 50 128 48 Z" fill="url(#furMid)"/><path d="M 132 45 Q 138 38 140 32" stroke="#d4c4a8" stroke-width="2" fill="none" opacity="0.5"/></g>
+          <g filter="url(#softGlow)"><path d="M 78 45 Q 72 30 65 15 M 72 30 Q 60 28 52 22 M 72 30 Q 65 22 58 18 M 68 38 Q 55 38 45 35 M 68 38 Q 58 32 50 28" fill="none" stroke="url(#antler)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M 122 45 Q 128 30 135 15 M 128 30 Q 140 28 148 22 M 128 30 Q 135 22 142 18 M 132 38 Q 145 38 155 35 M 132 38 Q 142 32 150 28" fill="none" stroke="url(#antler)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+          <g filter="url(#tipGlow)"><circle class="antler-tip" cx="65" cy="15" r="3" fill="#c9a962"/><circle class="antler-tip" cx="52" cy="22" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="58" cy="18" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="45" cy="35" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="50" cy="28" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="135" cy="15" r="3" fill="#c9a962"/><circle class="antler-tip" cx="148" cy="22" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="142" cy="18" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="155" cy="35" r="2.5" fill="#c9a962"/><circle class="antler-tip" cx="150" cy="28" r="2.5" fill="#c9a962"/></g>
+          <g class="eyes"><ellipse cx="85" cy="60" rx="8" ry="9" fill="url(#eyeO)"/><ellipse cx="85" cy="60" rx="5" ry="6" fill="url(#eyeI)"/><ellipse cx="85" cy="60" rx="2.5" ry="3" fill="#1a1408"/><circle cx="83" cy="58" r="1.5" fill="#fff" opacity="0.8"/><ellipse cx="115" cy="60" rx="8" ry="9" fill="url(#eyeO)"/><ellipse cx="115" cy="60" rx="5" ry="6" fill="url(#eyeI)"/><ellipse cx="115" cy="60" rx="2.5" ry="3" fill="#1a1408"/><circle cx="113" cy="58" r="1.5" fill="#fff" opacity="0.8"/></g>
+          <path d="M 78 52 Q 85 50 92 52" stroke="#4a3d32" stroke-width="1.5" fill="none" opacity="0.5"/><path d="M 108 52 Q 115 50 122 52" stroke="#4a3d32" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <g style="transform-origin:100px 72px"><path d="M 95 68 Q 100 65 105 68 L 103 75 Q 100 78 97 75 Z" fill="url(#beak)"/><ellipse cx="100" cy="70" rx="3" ry="2" fill="#1a1408" opacity="0.8"/><ellipse cx="98" cy="68" rx="1.5" ry="1" fill="#5a4a3a" opacity="0.5"/></g>
+          <path d="M 94 77 Q 100 80 106 77" stroke="#4a3d32" stroke-width="1" fill="none" opacity="0.4"/>
+          <ellipse cx="85" cy="162" rx="8" ry="4" fill="#3d3029"/><ellipse cx="115" cy="162" rx="8" ry="4" fill="#3d3029"/>
+        </g>
+      </svg>
+
+      <p class="hero-tagline">Foundation for AI Ethics &amp; Safety Research</p>
+      <h1>A personal AI that <em>looks out</em> for you and your family</h1>
+      <p class="hero-sub">
+        Moose is an AI assistant that runs entirely on your hardware, advocates for your wellbeing,
+        helps your children learn, and never sends a single byte of your family's data to the cloud.
+      </p>
+      <div class="hero-buttons">
+        <a href="#start" class="btn-glossy">See Our Work</a>
+        <a href="https://github.com/faesr-foundation/moose" target="_blank" rel="noopener noreferrer" class="btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View Moose on GitHub
+        </a>
+      </div>
+      <p class="hero-note">
+        Requires Python 3.11+ and an LLM backend (Ollama, LM Studio, or llama.cpp).<br>
+        <strong>100% local.</strong> No accounts. No subscriptions. No data collection.
+      </p>
+    </div>
+
+    <div class="scroll-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- WHO -->
+  <section id="who">
+    <div class="container fade-in">
+      <div class="who-grid">
+        <div class="who-col">
+          <div class="who-label yes-label">This is for you if</div>
+          <p>You read to your kids. You answer "why" questions instead of shutting them down. You want your children to be curious, capable, and kind &#8212; and you feel overwhelmed by how hard that is in a world optimized to make them passive consumers.</p>
+          <p>You looked at the iPad and thought <em>"there has to be something better than this."</em></p>
+          <p>You're not defined by politics, religion, or geography. You're defined by aspiration. You want a Star Trek future for your kids and you don't see anyone building it.</p>
+        </div>
+        <div class="who-col who-no">
+          <div class="who-label no-label">This is not for you if</div>
+          <p>You want to spy on your kids. You're looking for a digital babysitter. You want AI to replace your involvement.</p>
+          <p>If you want to read your teenager's messages, Moose isn't your product. If you want to park your child in front of a screen and walk away, Moose isn't your product.</p>
+          <p>We'd rather save you the time than sell you something that will make you unhappy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="container fade-in">
+      <div class="section-tag">The problem</div>
+      <h2 class="section-title">The tools meant to help your family are designed to extract from it.</h2>
+      <p class="section-sub">Cloud AI assistants process your conversations on servers you don't control. Parental control apps surveil children instead of supporting them. And none of them are actually on your side.</p>
+      <div class="problem-grid">
+        <div class="glass-card problem-card"><div class="icon icon-red">&#x1F513;</div><h3>Your data leaves your home</h3><p>Every question your child asks a cloud AI travels through third-party servers. Their curiosity, their worries, their inner world &#8212; stored on hardware you'll never see.</p></div>
+        <div class="glass-card problem-card"><div class="icon icon-amber">&#x1F441;</div><h3>Parental tools are surveillance tools</h3><p>The market gives parents two options: spy on your kids or ignore the problem. Monitoring builds resentment. Ignoring it leaves children unprotected. Neither option builds trust.</p></div>
+        <div class="glass-card problem-card"><div class="icon icon-grey">&#x1F916;</div><h3>AI assistants say yes to everything</h3><p>Current AI is optimized to be agreeable, not honest. It won't tell you when you're making a mistake. It won't push back when you need it. It's a tool, not an advocate.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ADVOCACY -->
+  <section id="advocacy">
+    <div class="container fade-in">
+      <div class="section-tag">The Advocacy Layer</div>
+      <h2 class="section-title">AI that genuinely looks out for you.</h2>
+      <p class="section-sub">Moose doesn't just do what you ask. It watches for patterns, flags what matters, and respects your autonomy. Not a nag. Not a yes-man. An advocate.</p>
+      <div class="advocacy-grid">
+        <div class="glass-card advocacy-card"><div class="level">Silent observation</div><h3>Watches without hovering</h3><p>Moose notices patterns in your work, your habits, and your decisions. Most observations stay internal &#8212; quietly building understanding without interrupting your flow.</p></div>
+        <div class="glass-card advocacy-card"><div class="level">Ambient context</div><h3>Weaves in what matters</h3><p>Relevant information surfaces naturally inside normal responses. No separate alerts. No notification fatigue. Just the right context at the right moment.</p></div>
+        <div class="glass-card advocacy-card"><div class="level">Gentle flag</div><h3>Raises it once, then respects your choice</h3><p>When a clear pattern emerges, Moose tells you directly. If you dismiss it, Moose drops it. It doesn't repeat itself. Your decision is final &#8212; unless the situation changes.</p></div>
+        <div class="glass-card advocacy-card"><div class="level">Critical alert</div><h3>Says it whether you want to hear it or not</h3><p>For genuine safety or wellbeing concerns, Moose speaks up clearly. Not to control you &#8212; because looking out for someone means being honest even when it's uncomfortable.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- FAMILIES -->
+  <section id="families">
+    <div class="container fade-in">
+      <div class="section-tag">Built for families</div>
+      <h2 class="section-title">A patient teacher. A trusted guide. A professional in your pocket.</h2>
+      <p class="section-sub">Moose adapts to every member of your family &#8212; their age, their needs, their growing independence.</p>
+      <div class="families-layout">
+        <div class="families-text">
+          <h3>For children</h3>
+          <p>Moose answers every "why" with patience no human can sustain. It meets curiosity with honest, age-appropriate answers. It helps with homework by teaching, not giving answers. It helps kids learn to build things, write code, create art, and think through problems &#8212; at their own pace, without judgment.</p>
+          <p>When a child is struggling emotionally, Moose notices the pattern and helps parents understand what they're seeing &#8212; with developmental context and evidence-based guidance on how to respond. Not a transcript. Not surveillance. Insight paired with professional knowledge.</p>
+          <h3>For parents</h3>
+          <p>Parenting doesn't come with a handbook. Now it can come with a professional. Moose gives parents the developmental context that child therapists, pediatricians, and educators have &#8212; without the waitlists or the cost.</p>
+          <p class="example-quote">"Your child has been expressing frustration about math consistently. Their pattern suggests they understand the concepts but get overwhelmed by timed tests. You might ask their teacher about untimed alternatives."</p>
+          <h3>Growing autonomy, built in</h3>
+          <p>What Moose shares with parents changes as children grow. A six-year-old gets more visible support. A twelve-year-old gets more independence. A sixteen-year-old's experience looks much more like an adult's. The child's growing autonomy isn't something parents have to manage &#8212; it's built into the architecture.</p>
+        </div>
+        <div class="glass-card families-aside">
+          <h4>Advocate Profiles</h4>
+          <div class="profile-item"><div class="profile-name">Solo</div><div class="profile-desc">Full advocacy, Moose only. No external escalation. For adults who want a capable AI that looks out for them.</div><div class="profile-threshold">Default for all users</div></div>
+          <div class="profile-item"><div class="profile-name">Partnered</div><div class="profile-desc">A trusted person can be consulted on critical-level flags. They see patterns, not content. Both parties consent.</div><div class="profile-threshold">Escalation at critical only</div></div>
+          <div class="profile-item"><div class="profile-name">Guided</div><div class="profile-desc">Tighter feedback loop. The trusted person sees more categories and can set supportive boundaries. For children, neurodivergent users, or anyone who wants more structure.</div><div class="profile-threshold">Adjustable thresholds</div></div>
+          <div class="profile-item"><div class="profile-name">Custom</div><div class="profile-desc">Full control over every category, threshold, and trusted person. Your system, your rules.</div><div class="profile-threshold">Per-category configuration</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="container fade-in">
+      <div class="section-tag">What Moose can do</div>
+      <h2 class="section-title">An engineering assistant, a learning companion, and a household co-pilot.</h2>
+      <p class="section-sub">Specialist agents route every question to the right expertise. One system, many skills.</p>
+      <div class="cap-grid">
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F6E1;</div><h3>Security</h3><p>Multi-layered authentication, hardware interlocks, prompt injection scanning, and defense-in-depth architecture that keeps your family's data safe.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F527;</div><h3>Engineering &amp; Making</h3><p>Works with Bambu Lab, Blender, FreeCAD, and Arduino. Helps you design, print, build, and debug &#8212; from first sketch to finished project.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F50D;</div><h3>Research &amp; Learning</h3><p>Deep reasoning for complex analysis. Homework help that teaches. Project research that cites its sources and rates their reliability.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F4C5;</div><h3>Home Management</h3><p>Calendar, email, scheduling, and routine coordination. The boring logistics that hold a household together, handled reliably.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F4AC;</div><h3>Communication</h3><p>Connects through the channels you already use &#8212; messaging apps, voice, and more. Same brain, every surface.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F9EE;</div><h3>Math &amp; Calculations</h3><p>Material specs, tolerances, unit conversions, engineering math, and data analysis. From homework help to professional calculations.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F4BB;</div><h3>Code &amp; Automation</h3><p>Write scripts, automate workflows, debug projects, and learn programming with a patient guide that adapts to your skill level.</p></div>
+        <div class="glass-card cap-card"><div class="cap-icon">&#x1F91D;</div><h3>Advocacy</h3><p>Watches for patterns, flags what matters, navigates the tension between your goals and your habits. The capability that makes everything else trustworthy.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <div class="container fade-in">
+      <div class="section-tag">How it's built</div>
+      <h2 class="section-title">Local-first isn't a feature. It's a prerequisite.</h2>
+      <p class="section-sub">When the data is your child's inner life, "we take privacy seriously" isn't good enough. The architecture has to make exposure impossible.</p>
+      <div class="arch-columns">
+        <div class="arch-block">
+          <h3>Your hardware, your data</h3>
+          <p>Moose runs entirely on your machine. Conversations, patterns, advocacy observations, and family data never touch a server. There's no account to create, no subscription to pay, and no company that can be acquired, subpoenaed, or breached to expose your family's information.</p>
+          <ul class="arch-list"><li>Works with Ollama, LM Studio, or llama.cpp as your AI backend</li><li>Choose the models you trust &#8212; swap them anytime</li><li>All state stored locally in files you own and can inspect</li><li>Docker option for additional isolation</li></ul>
+        </div>
+        <div class="arch-block">
+          <h3>Security through architecture, not promises</h3>
+          <p>Moose doesn't rely on model alignment to stay safe. The architecture itself constrains what the system can do. Actions require explicit human authorization. Sensitive operations require hardware confirmation.</p>
+          <ul class="arch-list"><li>Tiered permission system &#8212; routine, sensitive, critical</li><li>Command allowlisting &#8212; only pre-approved operations execute</li><li>Dedicated security agent monitors all system activity</li><li>Prompt injection scanning at multiple layers</li><li>Optional hardware authentication (NFC, biometrics, physical buttons)</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- PRINCIPLES -->
+  <section>
+    <div class="container fade-in">
+      <div class="section-tag">What we believe</div>
+      <h2 class="section-title">Design principles</h2>
+      <div class="principle-grid">
+        <div class="principle"><div class="num">01</div><h3>Advocate for the user, even a child</h3><p>Moose's loyalty is to the person it's helping. For children, that means supporting their growth and protecting their safety &#8212; while keeping parents informed with context and guidance, not surveillance.</p></div>
+        <div class="principle"><div class="num">02</div><h3>Honest over agreeable</h3><p>A tool that tells you what you want to hear is a broken tool. Moose is structurally designed to push back when the situation warrants it, not because a prompt says to, but because the architecture requires it.</p></div>
+        <div class="principle"><div class="num">03</div><h3>Structure over alignment</h3><p>Safety can't depend on a model behaving well. It has to be architecturally impossible for the system to act against your interests. Permissions, hardware interlocks, and human-in-the-loop by design.</p></div>
+        <div class="principle"><div class="num">04</div><h3>Grow with the person</h3><p>A six-year-old and a sixteen-year-old need fundamentally different relationships with AI. Moose adapts not just its language but its entire interaction model as users develop and change.</p></div>
+        <div class="principle"><div class="num">05</div><h3>Observe much, speak little</h3><p>The fastest way to kill trust is to nag. Moose watches constantly and speaks up rarely. When it does, it matters. The threshold for intervention is high &#8212; but when Moose says something, listen.</p></div>
+        <div class="principle"><div class="num">06</div><h3>No one else's incentives</h3><p>FAESR is a nonprofit. Moose is open source. There are no ads, no data collection, no engagement metrics, and no investor pressure to monetize your family's attention.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- CTA -->
+  <section id="start">
+    <div class="container fade-in">
+      <div class="start-box">
+        <h2>Ready to build something better?</h2>
+        <p>Moose is open source, free, and actively developed. Join us.</p>
+        <div class="start-ctas">
+          <a href="https://github.com/faesr-foundation/moose" target="_blank" rel="noopener noreferrer" class="btn-glossy btn-large">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            View on GitHub
+          </a>
+          <a href="https://github.com/faesr-foundation/moose/issues" target="_blank" rel="noopener noreferrer" class="btn-outline">Report Issues</a>
+        </div>
+      </div>
+      <p class="start-note">Requires Python 3.11+, Node 18+, and an LLM backend. Currently in active development &#8212; contributions welcome.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand-block">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <defs><linearGradient id="f-fur" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#a69076"/><stop offset="100%" stop-color="#8b7355"/></linearGradient><linearGradient id="f-antler" x1="50%" y1="100%" x2="50%" y2="0%"><stop offset="0%" stop-color="#9c8b74"/><stop offset="100%" stop-color="#e0d5c3"/></linearGradient></defs>
+          <ellipse cx="100" cy="85" rx="28" ry="22" fill="#6d5a47"/><ellipse cx="100" cy="62" rx="30" ry="28" fill="url(#f-fur)"/>
+          <path d="M 78 45 Q 72 30 65 15 M 72 30 Q 60 28 52 22 M 68 38 Q 55 38 45 35" fill="none" stroke="url(#f-antler)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 122 45 Q 128 30 135 15 M 128 30 Q 140 28 148 22 M 132 38 Q 145 38 155 35" fill="none" stroke="url(#f-antler)" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="65" cy="15" r="3" fill="#c9a962"/><circle cx="52" cy="22" r="2.5" fill="#c9a962"/><circle cx="45" cy="35" r="2.5" fill="#c9a962"/>
+          <circle cx="135" cy="15" r="3" fill="#c9a962"/><circle cx="148" cy="22" r="2.5" fill="#c9a962"/><circle cx="155" cy="35" r="2.5" fill="#c9a962"/>
+        </svg>
+        <div class="footer-brand-text">
+          FAESR
+          <span>Foundation for AI Ethics &amp; Safety Research. A nonprofit R&amp;D company. Built in Virginia's Shenandoah Valley.</span>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.youtube.com/@faesrherald" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          YouTube
+        </a>
+        <a href="https://github.com/faesr-foundation" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Nav scroll effect
+    window.addEventListener('scroll', () => {
+      document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        const href = link.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+
+    // Mobile menu
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (menuBtn && mobileMenu) {
+      menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+      mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+    }
+  </script>
+
+</body>
+</html>
