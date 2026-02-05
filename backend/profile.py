@@ -186,6 +186,42 @@ class CognitiveLoopConfig:
 
 
 @dataclass
+class AdvocacyUserConfig:
+    name: str = ""
+    age: Optional[int] = None
+    context: str = ""
+
+
+@dataclass
+class AdvocateConfig:
+    name: str = ""
+    relationship: str = ""  # partner, parent, therapist, coach, friend
+    channel: str = ""  # email, slack, telegram
+    categories: list[str] = field(default_factory=list)
+    escalation_threshold: int = 3  # minimum friction level
+    can_set_boundaries: bool = False
+    visibility: str = "themes"  # themes | full | none
+
+
+@dataclass
+class DevelopmentalConfig:
+    mode: str = "adult"  # child | adolescent | adult
+
+
+@dataclass
+class AdvocacyConfig:
+    enabled: bool = False
+    profile: str = "solo"  # solo | partnered | guided | custom
+    user: AdvocacyUserConfig = field(default_factory=AdvocacyUserConfig)
+    goals_cap: int = 50
+    patterns_cap: int = 100
+    cooloff_days: int = 14
+    max_flags_per_day: int = 3
+    advocates: list[AdvocateConfig] = field(default_factory=list)
+    developmental: DevelopmentalConfig = field(default_factory=DevelopmentalConfig)
+
+
+@dataclass
 class Profile:
     system: SystemConfig = field(default_factory=SystemConfig)
     owner: OwnerConfig = field(default_factory=OwnerConfig)
@@ -197,6 +233,7 @@ class Profile:
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
     prompts: PromptsConfig = field(default_factory=PromptsConfig)
     cognitive_loop: CognitiveLoopConfig = field(default_factory=CognitiveLoopConfig)
+    advocacy: AdvocacyConfig = field(default_factory=AdvocacyConfig)
 
     def is_agent_enabled(self, agent_id: str) -> bool:
         """Check if an agent is enabled in the profile."""
@@ -366,6 +403,51 @@ def _load_profile_from_dict(raw: dict) -> Profile:
     # Cognitive Loop
     if "cognitive_loop" in raw and isinstance(raw["cognitive_loop"], dict):
         profile.cognitive_loop = _parse_dict(raw["cognitive_loop"], CognitiveLoopConfig)
+
+    # Advocacy
+    if "advocacy" in raw and isinstance(raw["advocacy"], dict):
+        adv_raw = raw["advocacy"]
+        advocacy = AdvocacyConfig(
+            enabled=adv_raw.get("enabled", False),
+            profile=adv_raw.get("profile", "solo"),
+            goals_cap=adv_raw.get("goals_cap", 50),
+            patterns_cap=adv_raw.get("patterns_cap", 100),
+            cooloff_days=adv_raw.get("cooloff_days", 14),
+            max_flags_per_day=adv_raw.get("max_flags_per_day", 3),
+        )
+
+        # User config
+        user_raw = adv_raw.get("user", {})
+        if isinstance(user_raw, dict):
+            advocacy.user = AdvocacyUserConfig(
+                name=user_raw.get("name", ""),
+                age=user_raw.get("age"),
+                context=user_raw.get("context", ""),
+            )
+
+        # Developmental config
+        dev_raw = adv_raw.get("developmental", {})
+        if isinstance(dev_raw, dict):
+            advocacy.developmental = DevelopmentalConfig(
+                mode=dev_raw.get("mode", "adult"),
+            )
+
+        # Advocates list
+        advocates_raw = adv_raw.get("advocates", [])
+        if isinstance(advocates_raw, list):
+            for a in advocates_raw:
+                if isinstance(a, dict):
+                    advocacy.advocates.append(AdvocateConfig(
+                        name=a.get("name", ""),
+                        relationship=a.get("relationship", ""),
+                        channel=a.get("channel", ""),
+                        categories=a.get("categories", []),
+                        escalation_threshold=a.get("escalation_threshold", 3),
+                        can_set_boundaries=a.get("can_set_boundaries", False),
+                        visibility=a.get("visibility", "themes"),
+                    ))
+
+        profile.advocacy = advocacy
 
     return profile
 

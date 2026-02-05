@@ -32,6 +32,8 @@ class MessageType(Enum):
     ESCALATION = "escalation"
     AUDIT = "audit"
     CHANNEL = "channel"
+    ADVOCACY_ESCALATION = "advocacy_escalation"
+    ADVOCACY_RESPONSE = "advocacy_response"
 
 
 class MessagePriority(Enum):

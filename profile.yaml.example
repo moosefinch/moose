@@ -95,3 +95,26 @@ prompts:
   personality: ""                # Injected into presentation prompt
   domains: ""                    # Domain expertise description
   # Full prompt overrides: place files in profiles/prompts/<agent_id>.md
+
+advocacy:
+  enabled: false                 # Enable the advocacy subsystem
+  profile: "solo"                # solo | partnered | guided | custom
+  user:
+    name: ""                     # User's name
+    age:                         # User's age (determines developmental mode)
+    context: ""                  # Additional context about the user
+  goals_cap: 50                  # Max active goals
+  patterns_cap: 100              # Max active patterns
+  cooloff_days: 14               # Days before a dismissed pattern can resurface
+  max_flags_per_day: 3           # Maximum advocacy flags per day
+  developmental:
+    mode: "adult"                # child | adolescent | adult (auto-detected from age if unset)
+  advocates: []                  # List of trusted advocates
+  # Example advocate:
+  # - name: "Partner Name"
+  #   relationship: "partner"    # partner | parent | therapist | coach | friend
+  #   channel: "email"           # email | slack | telegram
+  #   categories: ["health", "financial"]
+  #   escalation_threshold: 3    # Minimum friction level (0-4) to escalate
+  #   can_set_boundaries: false  # Can this advocate set boundaries on Moose's behalf?
+  #   visibility: "themes"       # themes | full | none

@@ -18,6 +18,30 @@ logger = logging.getLogger(__name__)
 class _ChatPipelineMixin:
     """Mixin providing the main chat() entry point for AgentCore."""
 
+    async def _inject_advocacy_context(self, message: str, content: str) -> str:
+        """Inject advocacy context into response if the subsystem is active."""
+        advocacy = getattr(self, 'advocacy_system', None)
+        if not advocacy or not advocacy.enabled or not advocacy.friction:
+            return content
+        try:
+            context = advocacy.friction.get_advocacy_context(
+                conversation_topic=message,
+                response_content=content,
+            )
+            if context:
+                if context.startswith("[advocacy-context]"):
+                    # Level 1 (ambient): append naturally
+                    content = content + "\n\n" + context.replace("[advocacy-context] ", "")
+                elif "IMPORTANT" in context:
+                    # Level 4: prepend as warning
+                    content = context + "\n\n" + content
+                else:
+                    # Level 2-3: append as flag
+                    content = content + context
+        except Exception as e:
+            logger.warning("[ChatPipeline] Advocacy injection error: %s", e)
+        return content
+
     async def chat(self, message: str, history: list = None,
                    use_tools: bool = True, stream: bool = False) -> dict:
         """Main entry point — routes through classifier then agent fleet.
@@ -144,6 +168,9 @@ class _ChatPipelineMixin:
             # Presentation adds another full 70b round-trip which doubles latency.
             content = raw_content
 
+            # Advocacy context injection
+            content = await self._inject_advocacy_context(message, content)
+
             elapsed = time.time() - t0
 
             if self.memory._api_base and content and not content.startswith("Error"):
@@ -253,6 +280,9 @@ class _ChatPipelineMixin:
         # Process through Memory V2 (async, don't block response)
         if response_text and not response_text.startswith("Error"):
             asyncio.create_task(self._process_memory_v2(message, response_text))
+
+        # Advocacy context injection
+        response_text = await self._inject_advocacy_context(message, response_text)
 
         return {
             "content": response_text,

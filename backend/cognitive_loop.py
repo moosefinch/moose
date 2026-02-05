@@ -92,6 +92,11 @@ class CognitiveLoop:
                 await self._broadcast_status()
                 insights = await self._orient(observations)
 
+                # Advocacy phase — pattern detection and goal tracking
+                self._phase = "advocate"
+                await self._broadcast_status()
+                await self._advocate(observations, insights)
+
                 self._phase = "decide"
                 await self._broadcast_status()
                 actions = await self._decide(insights)
@@ -361,6 +366,19 @@ class CognitiveLoop:
                 })
 
         return insights
+
+    # ── ADVOCATE Phase ──
+
+    async def _advocate(self, observations: list[dict], insights: list[dict]):
+        """Run advocacy pattern detection if the subsystem is enabled."""
+        advocacy = getattr(self._core, 'advocacy_system', None)
+        if not advocacy or not advocacy.enabled:
+            return
+
+        try:
+            await advocacy.run_advocacy_cycle(observations)
+        except Exception as e:
+            logger.warning("[CognitiveLoop] Advocacy phase error: %s", e)
 
     # ── DECIDE Phase ──
 

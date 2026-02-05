@@ -160,6 +160,8 @@ class AgentCore(_StateMixin, _ClassificationMixin, _EscalationMixin, _ChatPipeli
         # Memory V2 — self-aware, self-populating memory system
         self.memory_v2: Optional[MemoryV2] = None
         self._current_session_id: Optional[str] = None
+        # Advocacy subsystem
+        self.advocacy_system = None
 
     # ── Model Discovery ──
 
@@ -318,8 +320,24 @@ class AgentCore(_StateMixin, _ClassificationMixin, _EscalationMixin, _ChatPipeli
             logger.info("Agent system initialized: %s", ", ".join(agent_ids))
             logger.info("Channels: %s", ", ".join(self.channel_manager._channels.keys()))
 
-            # Initialize marketing engine if CRM plugin is enabled
+            # Initialize advocacy subsystem if enabled
             profile = get_profile()
+            if profile.advocacy.enabled:
+                try:
+                    from advocacy import AdvocacySystem
+                    from config import ADVOCACY_STATE_DIR
+                    self.advocacy_system = AdvocacySystem(
+                        config=profile.advocacy,
+                        state_dir=ADVOCACY_STATE_DIR,
+                        channel_manager=self.channel_manager,
+                        bus=self.bus,
+                    )
+                    logger.info("Advocacy system initialized")
+                except Exception as e:
+                    logger.error("Advocacy system init failed: %s", e)
+                    self.advocacy_system = None
+
+            # Initialize marketing engine if CRM plugin is enabled
             if profile.plugins.crm.enabled:
                 try:
                     from marketing_engine import get_marketing_engine

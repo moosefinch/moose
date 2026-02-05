@@ -87,6 +87,13 @@ STATE_DIR = _Path(__file__).parent / "memory"
 STATE_FILE_PATH = STATE_DIR / "state.json"
 SOUL_FILE_PATH = STATE_DIR / "SOUL.md"
 
+# ── Advocacy State ──
+ADVOCACY_STATE_DIR = STATE_DIR / "advocacy"
+GOALS_PATH = ADVOCACY_STATE_DIR / "goals.json"
+PATTERNS_PATH = ADVOCACY_STATE_DIR / "patterns.json"
+FRICTION_PATH = ADVOCACY_STATE_DIR / "friction.json"
+ONBOARDING_PATH = ADVOCACY_STATE_DIR / "onboarding.json"
+
 # ── SMTP Configuration from profile ──
 SMTP_HOST = os.environ.get("MOOSE_SMTP_HOST", _profile.smtp.host)
 SMTP_PORT = int(os.environ.get("MOOSE_SMTP_PORT", str(_profile.smtp.port)))
