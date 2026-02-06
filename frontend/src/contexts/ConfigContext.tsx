@@ -6,12 +6,16 @@ interface Config {
   systemName: string
   version: string
   enabledPlugins: string[]
+  advocacyEnabled: boolean
+  cognitiveLoopEnabled: boolean
 }
 
 const defaultConfig: Config = {
   systemName: 'Moose',
   version: '',
   enabledPlugins: [],
+  advocacyEnabled: false,
+  cognitiveLoopEnabled: false,
 }
 
 const ConfigContext = createContext<Config>(defaultConfig)
@@ -23,12 +27,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     fetch(apiUrl('/api/config'))
       .then(r => r.json())
-      .then((data: { system_name: string; version: string; enabled_plugins: string[] }) => {
+      .then((data: { system_name: string; version: string; enabled_plugins: string[]; advocacy_enabled?: boolean; cognitive_loop_enabled?: boolean }) => {
         if (cancelled) return
         setConfig({
           systemName: data.system_name || defaultConfig.systemName,
           version: data.version || '',
           enabledPlugins: data.enabled_plugins || [],
+          advocacyEnabled: data.advocacy_enabled || false,
+          cognitiveLoopEnabled: data.cognitive_loop_enabled || false,
         })
       })
       .catch(err => {

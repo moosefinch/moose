@@ -16,6 +16,8 @@ interface AppEventsConfig {
     tasks: { id: string; status: string; description: string }[]
   }
   marketing: { refresh: () => void }
+  advocacy: { refresh: () => void }
+  proposals: { refresh: () => void }
   setActiveModel: (model: string) => void
   setAgentEvents: React.Dispatch<React.SetStateAction<AgentEvent[]>>
   setAgentStates: React.Dispatch<React.SetStateAction<AgentState[]>>
@@ -28,7 +30,7 @@ interface AppEventsConfig {
 
 export function useAppEvents(cfg: AppEventsConfig) {
   const {
-    on, off, chat, api, marketing,
+    on, off, chat, api, marketing, advocacy, proposals,
     setActiveModel, setAgentEvents, setActiveMission,
     setChannelMessages, setCognitiveStatus, setPendingApproval,
     addToast,
@@ -150,11 +152,28 @@ export function useAppEvents(cfg: AppEventsConfig) {
     const handleBriefingReady = (data: Record<string, unknown>) => {
       const briefing = data.briefing as Record<string, unknown> | undefined
       if (briefing) {
-        const content = (briefing.content || '') as string
-        chat.addMessage({ role: 'notification', content: `[Briefing] ${content.slice(0, 500)}` })
         addToast('New briefing ready')
       }
       api.loadBriefings()
+    }
+
+    const handleAdvocacyUpdate = (data: Record<string, unknown>) => {
+      const subtype = (data.subtype || '') as string
+      advocacy.refresh()
+      if (subtype === 'goal_created') addToast('New advocacy goal created')
+      else if (subtype === 'pattern_dismissed') addToast('Pattern dismissed')
+    }
+
+    const handleImprovementProposal = () => {
+      proposals.refresh()
+      addToast('New improvement proposal', { type: 'ai', duration: 8000 })
+    }
+
+    const handleProposalProgress = (data: Record<string, unknown>) => {
+      proposals.refresh()
+      const status = (data.status || '') as string
+      if (status === 'completed') addToast('Proposal executed successfully', { type: 'success' })
+      else if (status === 'failed') addToast('Proposal execution failed', { type: 'error' })
     }
 
     const handleContentDrafted = (data: Record<string, unknown>) => {
@@ -164,6 +183,9 @@ export function useAppEvents(cfg: AppEventsConfig) {
       marketing.refresh()
     }
 
+    on('improvement_proposal', handleImprovementProposal)
+    on('proposal_progress', handleProposalProgress)
+    on('advocacy_update', handleAdvocacyUpdate)
     on('proactive_insight', handleProactiveInsight)
     on('cognitive_status', handleCognitiveStatus)
     on('briefing_ready', handleBriefingReady)
@@ -184,6 +206,9 @@ export function useAppEvents(cfg: AppEventsConfig) {
     on('channel_message', handleChannelMessage)
 
     return () => {
+      off('improvement_proposal', handleImprovementProposal)
+      off('proposal_progress', handleProposalProgress)
+      off('advocacy_update', handleAdvocacyUpdate)
       off('proactive_insight', handleProactiveInsight)
       off('cognitive_status', handleCognitiveStatus)
       off('briefing_ready', handleBriefingReady)
@@ -201,18 +226,7 @@ export function useAppEvents(cfg: AppEventsConfig) {
       off('chat_message', chat.handleChatMessage)
       off('channel_message', handleChannelMessage)
     }
-  }, [on, off, chat.addMessage, chat.handleStreamChunk, chat.handleChatMessage, api, marketing.refresh, addToast])
-
-  // Briefing toast detection
-  const briefingIdsRef = useRef(new Set<string>())
-  useEffect(() => {
-    for (const b of api.briefings) {
-      if (!b.read && !briefingIdsRef.current.has(b.id)) {
-        briefingIdsRef.current.add(b.id)
-        chat.addMessage({ role: 'notification', content: `[Briefing] ${b.content.slice(0, 200)}${b.content.length > 200 ? '...' : ''}` })
-      }
-    }
-  }, [api.briefings, chat.addMessage])
+  }, [on, off, chat.addMessage, chat.handleStreamChunk, chat.handleChatMessage, api, marketing.refresh, advocacy.refresh, proposals.refresh, addToast])
 
   // Completed task notifications
   const completedTaskIdsRef = useRef(new Set<string>())

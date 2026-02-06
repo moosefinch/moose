@@ -9,6 +9,15 @@ interface MooseAvatarProps {
   onClick?: () => void;
 }
 
+const ANTLER_TIP_COLORS: Record<AvatarState, string> = {
+  idle: '#9a8872',
+  thinking: '#d4b06a',
+  talking: '#4a7a65',
+  success: '#4a7a65',
+  error: '#c45c5c',
+  greeting: '#d4b06a',
+};
+
 const MooseAvatar: React.FC<MooseAvatarProps> = ({
   state = 'idle',
   size = 200,
@@ -16,6 +25,7 @@ const MooseAvatar: React.FC<MooseAvatarProps> = ({
   onClick,
 }) => {
   const getStateClass = useCallback(() => `mf-${state}`, [state]);
+  const tipColor = ANTLER_TIP_COLORS[state];
 
   return (
     <div
@@ -227,6 +237,44 @@ const MooseAvatar: React.FC<MooseAvatarProps> = ({
         
         .glow-ring { opacity: 0; transition: opacity 0.3s; }
         .crown-glow { opacity: 0; transition: opacity 0.3s; }
+
+        .antler-tip {
+          transition: fill 0.6s ease, filter 0.6s ease;
+        }
+
+        .mf-idle .antler-tip {
+          filter: drop-shadow(0 0 2px currentColor);
+        }
+
+        .mf-thinking .antler-tip {
+          animation: tip-pulse 1.5s ease-in-out infinite;
+        }
+
+        .mf-talking .antler-tip {
+          animation: tip-pulse 0.8s ease-in-out infinite;
+        }
+
+        .mf-success .antler-tip {
+          animation: tip-pulse 1s ease-in-out infinite;
+        }
+
+        .mf-error .antler-tip {
+          animation: tip-flash 0.4s ease-in-out infinite;
+        }
+
+        .mf-greeting .antler-tip {
+          animation: tip-pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes tip-pulse {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
+
+        @keyframes tip-flash {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
       `}</style>
 
       <svg viewBox="0 0 200 200" className={`mf-svg ${getStateClass()}`}>
@@ -305,6 +353,15 @@ const MooseAvatar: React.FC<MooseAvatarProps> = ({
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
+
+          <filter id="tipGlow" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
         
         <circle className="glow-ring" cx="100" cy="95" r="75" fill="url(#glowGold)"/>
@@ -361,18 +418,23 @@ const MooseAvatar: React.FC<MooseAvatarProps> = ({
           {/* Antlers */}
           <g filter="url(#softGlow)">
             <path d="M 78 45 Q 72 30 65 15 M 72 30 Q 60 28 52 22 M 72 30 Q 65 22 58 18 M 68 38 Q 55 38 45 35 M 68 38 Q 58 32 50 28" fill="none" stroke="url(#antler)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="65" cy="15" r="2.5" fill="#e0d5c3"/>
-            <circle cx="52" cy="22" r="2" fill="#e0d5c3"/>
-            <circle cx="58" cy="18" r="2" fill="#e0d5c3"/>
-            <circle cx="45" cy="35" r="2" fill="#e0d5c3"/>
-            <circle cx="50" cy="28" r="2" fill="#e0d5c3"/>
-            
+
             <path d="M 122 45 Q 128 30 135 15 M 128 30 Q 140 28 148 22 M 128 30 Q 135 22 142 18 M 132 38 Q 145 38 155 35 M 132 38 Q 142 32 150 28" fill="none" stroke="url(#antler)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="135" cy="15" r="2.5" fill="#e0d5c3"/>
-            <circle cx="148" cy="22" r="2" fill="#e0d5c3"/>
-            <circle cx="142" cy="18" r="2" fill="#e0d5c3"/>
-            <circle cx="155" cy="35" r="2" fill="#e0d5c3"/>
-            <circle cx="150" cy="28" r="2" fill="#e0d5c3"/>
+          </g>
+
+          {/* Antler tips — glow with status color */}
+          <g filter="url(#tipGlow)">
+            <circle className="antler-tip" cx="65" cy="15" r="3" fill={tipColor}/>
+            <circle className="antler-tip" cx="52" cy="22" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="58" cy="18" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="45" cy="35" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="50" cy="28" r="2.5" fill={tipColor}/>
+
+            <circle className="antler-tip" cx="135" cy="15" r="3" fill={tipColor}/>
+            <circle className="antler-tip" cx="148" cy="22" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="142" cy="18" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="155" cy="35" r="2.5" fill={tipColor}/>
+            <circle className="antler-tip" cx="150" cy="28" r="2.5" fill={tipColor}/>
           </g>
           
           {/* Eyes */}

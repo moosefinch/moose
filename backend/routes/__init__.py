@@ -21,6 +21,9 @@ from routes.voice import router as voice_router
 from routes.plugins import router as plugins_router
 from routes.webhooks import router as webhooks_router
 from routes.printer import router as printer_router
+from routes.openai_compat import router as openai_compat_router
+from routes.advocacy import router as advocacy_router
+from routes.proposals import router as proposals_router
 
 
 def register_routes(app: FastAPI):
@@ -42,3 +45,6 @@ def register_routes(app: FastAPI):
     app.include_router(plugins_router)
     app.include_router(webhooks_router)
     app.include_router(printer_router)
+    app.include_router(openai_compat_router)
+    app.include_router(advocacy_router)
+    app.include_router(proposals_router)

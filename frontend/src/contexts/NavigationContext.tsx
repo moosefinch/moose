@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 
 export type Page = 'dashboard' | 'viewport' | 'more'
-export type MoreSubPage = 'chat' | 'channels' | 'memory' | 'marketing' | 'scheduling' | 'plugins' | 'printer'
+export type MoreSubPage = 'chat' | 'channels' | 'memory' | 'advocacy' | 'proposals' | 'marketing' | 'scheduling' | 'plugins' | 'printer'
 
 interface NavigationState {
   page: Page

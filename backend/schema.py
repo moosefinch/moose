@@ -119,6 +119,28 @@ def init_db():
         id TEXT PRIMARY KEY, action TEXT NOT NULL, description TEXT NOT NULL,
         params TEXT, created_at REAL NOT NULL, approved INTEGER
     )''')
+    # Improvement proposals (self-improvement pipeline)
+    c.execute('''CREATE TABLE IF NOT EXISTS improvement_proposals (
+        id TEXT PRIMARY KEY,
+        created_at REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        category TEXT NOT NULL,
+        severity TEXT DEFAULT 'medium',
+        gap_description TEXT,
+        gap_evidence TEXT,
+        solution_type TEXT,
+        solution_summary TEXT,
+        solution_details TEXT,
+        reasoning TEXT,
+        approved_at REAL,
+        executed_at REAL,
+        completed_at REAL,
+        execution_log TEXT,
+        result TEXT,
+        error TEXT
+    )''')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_proposals_status ON improvement_proposals(status)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_proposals_created ON improvement_proposals(created_at)')
     # Temporal snapshots
     c.execute('''CREATE TABLE IF NOT EXISTS temporal_snapshots (
         id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
@@ -329,5 +351,4 @@ def init_db():
             sl_init_db(conn)
         except ImportError:
             pass
-
     conn.close()

@@ -24,7 +24,7 @@
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -38,14 +38,15 @@
 
 .dashboard-card {
     position: relative;
-    background: linear-gradient(165deg, rgba(38, 64, 53, 0.12) 0%, rgba(18, 16, 14, 0.75) 40%, rgba(18, 16, 14, 0.85) 100%);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 20px;
     overflow: hidden;
-    transition: border-color 0.25s, box-shadow 0.25s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 
 .dashboard-card::before {
@@ -68,8 +69,8 @@
 }
 
 .dashboard-card:hover {
-    border-color: rgba(212, 176, 106, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 176, 106, 0.05);
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(212, 176, 106, 0.05);
 }
 
 .dashboard-card-title {
@@ -97,9 +98,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 16px;
+    padding: 11px 14px;
     background: linear-gradient(165deg, rgba(38, 64, 53, 0.08) 0%, rgba(18, 16, 14, 0.5) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
     font-family: var(--font);
@@ -144,7 +145,7 @@
     flex: 1;
     padding: 10px 14px;
     background: linear-gradient(180deg, rgba(15, 31, 26, 0.4) 0%, rgba(10, 21, 18, 0.6) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
     font-family: var(--font);
@@ -263,12 +264,13 @@
 .activity-feed {
     position: relative;
     z-index: 1;
-    max-height: calc(100vh - 120px);
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
 .feed-section {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .feed-section-label {
@@ -297,9 +299,9 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 8px 0;
-    font-size: 0.83rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 7px 0;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--border-subtle);
     transition: background 0.15s;
 }
 
@@ -356,7 +358,7 @@
 .agent-chip {
     padding: 4px 12px;
     background: linear-gradient(165deg, rgba(38, 64, 53, 0.1) 0%, rgba(18, 16, 14, 0.4) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
     border-radius: 14px;
     font-size: 0.75rem;
     color: var(--text-secondary);
@@ -388,7 +390,7 @@
 .printer-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -402,14 +404,15 @@
 
 .printer-card {
     position: relative;
-    background: linear-gradient(165deg, rgba(38, 64, 53, 0.12) 0%, rgba(18, 16, 14, 0.75) 40%, rgba(18, 16, 14, 0.85) 100%);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 20px;
     overflow: hidden;
-    transition: border-color 0.25s, box-shadow 0.25s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 
 .printer-card::before {
@@ -432,8 +435,8 @@
 }
 
 .printer-card:hover {
-    border-color: rgba(212, 176, 106, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 176, 106, 0.05);
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(212, 176, 106, 0.05);
 }
 
 .printer-card-title {
@@ -717,6 +720,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 .more-sub-tabs {
@@ -724,7 +728,7 @@
     gap: 4px;
     padding: 10px 16px;
     background: linear-gradient(180deg, rgba(18, 16, 14, 0.9) 0%, rgba(12, 10, 8, 0.95) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
     position: relative;
 }
@@ -769,6 +773,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
     background: radial-gradient(ellipse 80% 50% at 50% 100%, rgba(38, 64, 53, 0.06) 0%, transparent 50%);
 }
 
@@ -776,6 +781,7 @@
     flex: 1;
     display: flex;
     overflow: hidden;
+    min-height: 0;
 }
 
 /* ═══ Responsive ═══ */

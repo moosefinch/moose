@@ -33,7 +33,6 @@ PID_FILE = PID_DIR / "moose.pid"
 TTS_VENV_PYTHON = BACKEND_DIR / ".venv-tts" / "bin" / "python"
 TTS_SERVER_SCRIPT = BACKEND_DIR / "tts_server.py"
 TTS_PORT = 8787
-BACKEND_HOST = "127.0.0.1"
 BACKEND_PORT = 8000
 
 
@@ -57,7 +56,7 @@ def start_tts_server() -> subprocess.Popen | None:
 
     logger.info("Starting TTS server...")
     proc = subprocess.Popen(
-        [str(TTS_VENV_PYTHON), str(TTS_SERVER_SCRIPT)],
+        [str(TTS_VENV_PYTHON), "-P", str(TTS_SERVER_SCRIPT)],
         cwd=str(BACKEND_DIR),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -77,9 +76,38 @@ def start_tts_server() -> subprocess.Popen | None:
     return proc
 
 
+def run_security_check() -> bool:
+    """Run the pre-flight security check. Returns True if safe to proceed."""
+    check_script = BACKEND_DIR.parent / "security_check.py"
+    if not check_script.exists():
+        logger.info("Security check script not found — skipping")
+        return True
+    try:
+        result = subprocess.run(
+            [sys.executable, str(check_script)],
+            capture_output=True, text=True, timeout=15,
+        )
+        for line in result.stdout.strip().splitlines():
+            logger.info("security_check: %s", line)
+        if result.returncode == 1:
+            logger.error("Security check FAILED — see above for violations")
+            return False
+        if result.returncode == 2:
+            logger.warning("Security check passed with warnings")
+        return True
+    except (subprocess.TimeoutExpired, OSError) as e:
+        logger.warning("Security check could not run: %s", e)
+        return True
+
+
 def run():
     """Main daemon entry point."""
     write_pid()
+
+    if not run_security_check():
+        logger.error("Refusing to start — fix security violations first")
+        remove_pid()
+        sys.exit(1)
 
     tts_proc = start_tts_server()
     shutdown_event = asyncio.Event()
@@ -94,10 +122,14 @@ def run():
     async def serve():
         """Run uvicorn programmatically with graceful shutdown support."""
         import uvicorn
+        from network import get_bind_host
+
+        bind_host = get_bind_host()
+        logger.info("Binding to %s:%d", bind_host, BACKEND_PORT)
 
         config = uvicorn.Config(
             "main:app",
-            host=BACKEND_HOST,
+            host=bind_host,
             port=BACKEND_PORT,
             log_level="info",
         )

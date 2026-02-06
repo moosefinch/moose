@@ -6,13 +6,17 @@ import { MemoryExplorer } from '../components/MemoryExplorer'
 import { MarketingDrawer } from '../components/MarketingDrawer'
 import { SchedulingDrawer } from '../components/SchedulingDrawer'
 import { PluginsPanel } from '../components/PluginsPanel'
+import { AdvocacyPanel } from '../components/AdvocacyPanel'
 import { PrinterPage } from './PrinterPage'
-import type { ChatMessage, AgentState, ChannelMessage, PendingEmail, ContentDraft, MarketingStats, ScheduledJob, WebhookEndpoint, CognitiveStatus } from '../types'
+import { ProposalsHistoryPanel } from '../components/ProposalsHistoryPanel'
+import type { ChatMessage, AgentState, Briefing, ChannelMessage, PendingEmail, ContentDraft, MarketingStats, ScheduledJob, WebhookEndpoint, CognitiveStatus, AdvocacyGoal, AdvocacyPattern, AdvocacyStatus, ImprovementProposal } from '../types'
 
 const SUB_TABS: { id: MoreSubPage; label: string }[] = [
   { id: 'chat', label: 'Chat' },
   { id: 'channels', label: 'Channels' },
   { id: 'memory', label: 'Memory' },
+  { id: 'advocacy', label: 'Advocacy' },
+  { id: 'proposals', label: 'Proposals' },
   { id: 'marketing', label: 'Marketing' },
   { id: 'scheduling', label: 'Scheduling' },
   { id: 'plugins', label: 'Plugins' },
@@ -29,12 +33,11 @@ interface MorePageProps {
   endRef: React.RefObject<HTMLDivElement | null>
   onSend: (msg: string) => void
   onVoiceStart: () => void
-  // Sidebar / Conversations
-  conversations: { id: string; title: string; created_at: string; updated_at: string }[]
-  activeConvoId: string | null
-  onSelectConversation: (id: string) => void
-  onNewConversation: () => void
-  onDeleteConversation: (id: string) => void
+  isRecording?: boolean
+  // Sidebar / Briefings
+  briefings: Briefing[]
+  onMarkBriefingRead: (id: string) => void
+  onMarkAllRead: () => void
   agents: AgentState[]
   connected: boolean
   apiUp: boolean
@@ -44,6 +47,21 @@ interface MorePageProps {
   // Memory
   memoryCount: number
   onSearchMemory: (q: string, topK?: number) => Promise<{ text: string; score: number }[]>
+  // Advocacy
+  advocacyEnabled: boolean
+  advocacyStatus: AdvocacyStatus | null
+  advocacyGoals: AdvocacyGoal[]
+  advocacyUnconfirmedGoals: AdvocacyGoal[]
+  advocacyPatterns: AdvocacyPattern[]
+  onCreateGoal: (data: { text: string; category?: string; priority?: number }) => void
+  onUpdateGoal: (id: string, data: { status?: string; priority?: number }) => void
+  onConfirmGoal: (id: string) => void
+  onRejectGoal: (id: string) => void
+  onRecordEvidence: (id: string, data: { type?: string; description: string }) => void
+  onDismissPattern: (id: string) => void
+  onStartOnboarding: () => void
+  onRespondOnboarding: (text: string) => Promise<{ next_prompt?: string; stage?: string; complete?: boolean } | null>
+  onResetOnboarding: () => void
   // Marketing
   crmEnabled: boolean
   pendingEmails: PendingEmail[]
@@ -65,6 +83,10 @@ interface MorePageProps {
   onCreateWebhook: (wh: Record<string, unknown>) => void
   onUpdateWebhook: (id: string, wh: Record<string, unknown>) => void
   onDeleteWebhook: (id: string) => void
+  // Proposals
+  proposals: ImprovementProposal[]
+  onApproveProposal: (id: string) => void
+  onRejectProposal: (id: string) => void
 }
 
 export function MorePage(props: MorePageProps) {
@@ -73,7 +95,7 @@ export function MorePage(props: MorePageProps) {
   return (
     <div className="page-more">
       <div className="more-sub-tabs">
-        {SUB_TABS.filter(t => t.id !== 'marketing' || props.crmEnabled).map(tab => (
+        {SUB_TABS.filter(t => (t.id !== 'marketing' || props.crmEnabled) && (t.id !== 'advocacy' || props.advocacyEnabled)).map(tab => (
           <button
             key={tab.id}
             className={`more-sub-tab ${subPage === tab.id ? 'active' : ''}`}
@@ -90,11 +112,9 @@ export function MorePage(props: MorePageProps) {
             <Sidebar
               open={true}
               onToggle={() => {}}
-              conversations={props.conversations}
-              activeConvoId={props.activeConvoId}
-              onSelectConversation={props.onSelectConversation}
-              onNewConversation={props.onNewConversation}
-              onDeleteConversation={props.onDeleteConversation}
+              briefings={props.briefings}
+              onMarkBriefingRead={props.onMarkBriefingRead}
+              onMarkAllRead={props.onMarkAllRead}
               agents={props.agents}
               connected={props.connected}
               apiUp={props.apiUp}
@@ -104,7 +124,7 @@ export function MorePage(props: MorePageProps) {
               onOpenMemory={() => setSubPage('memory')}
               onOpenScheduling={() => setSubPage('scheduling')}
               onOpenPlugins={() => setSubPage('plugins')}
-              cognitiveStatus={props.cognitiveStatus}
+              cognitiveStatus={null}
             />
             <ChatPanel
               messages={props.messages}
@@ -115,6 +135,7 @@ export function MorePage(props: MorePageProps) {
               endRef={props.endRef}
               onSend={props.onSend}
               onVoiceStart={props.onVoiceStart}
+              isRecording={props.isRecording}
               cognitiveStatus={props.cognitiveStatus}
             />
           </div>
@@ -137,6 +158,36 @@ export function MorePage(props: MorePageProps) {
             memoryCount={props.memoryCount}
             onSearch={props.onSearchMemory}
             embedded
+          />
+        )}
+
+        {subPage === 'advocacy' && props.advocacyEnabled && (
+          <AdvocacyPanel
+            open={true}
+            onClose={() => setSubPage('chat')}
+            status={props.advocacyStatus}
+            goals={props.advocacyGoals}
+            unconfirmedGoals={props.advocacyUnconfirmedGoals}
+            patterns={props.advocacyPatterns}
+            onCreateGoal={props.onCreateGoal}
+            onUpdateGoal={props.onUpdateGoal}
+            onConfirmGoal={props.onConfirmGoal}
+            onRejectGoal={props.onRejectGoal}
+            onRecordEvidence={props.onRecordEvidence}
+            onDismissPattern={props.onDismissPattern}
+            onStartOnboarding={props.onStartOnboarding}
+            onRespondOnboarding={props.onRespondOnboarding}
+            onResetOnboarding={props.onResetOnboarding}
+            embedded
+          />
+        )}
+
+        {subPage === 'proposals' && (
+          <ProposalsHistoryPanel
+            proposals={props.proposals}
+            onApprove={props.onApproveProposal}
+            onReject={props.onRejectProposal}
+            onClose={() => setSubPage('chat')}
           />
         )}
 

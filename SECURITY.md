@@ -73,6 +73,136 @@ All responses include:
 - Custom HTML escaping for interpolated content
 - Safe link handling with `rel="noopener noreferrer"`
 
+## Network Hardening
+
+### Bind Policy
+
+Moose never binds to `0.0.0.0`. The server resolves its listen address at
+startup using this priority:
+
+1. `MOOSE_BIND_HOST` environment variable (explicit override — rejects `0.0.0.0`)
+2. Tailscale IPv4 address (via `tailscale ip -4`)
+3. `127.0.0.1` fallback (Tailscale not available)
+
+This is implemented in `backend/network.py` and used by both `main.py` (dev)
+and `daemon.py` (production).
+
+### Port Map
+
+| Service              | Port  | Allowed Bind      | Notes |
+|----------------------|-------|-------------------|-------|
+| Moose API            | 8000  | Tailscale IP only | All endpoints including `/v1/` |
+| OpenClaw Gateway     | varies| 127.0.0.1         | WebSocket control plane |
+| CDP Debug (Chromium) | 9222  | 127.0.0.1         | Must set `--remote-debugging-address=127.0.0.1` |
+| Ollama (Bjorn)       | 11434 | 127.0.0.1         | Set `OLLAMA_HOST=127.0.0.1:11434` |
+| Ollama (Poncho)      | 11434 | 0.0.0.0           | Needs Tailscale access from Bjorn |
+| SearXNG              | 8888  | 127.0.0.1         | Local search only |
+| Herald Orchestrator  | 8000  | 127.0.0.1         | Local orchestration |
+| LM Studio            | 1234  | 127.0.0.1         | Set in LM Studio Server settings |
+| TTS Server           | 8787  | 127.0.0.1         | Managed by daemon.py |
+
+### Network ACL Middleware
+
+`NetworkACLMiddleware` in `main.py` provides defense-in-depth: even if Moose
+is accidentally bound to a LAN interface, only requests from `127.0.0.1`,
+`::1`, and the Tailscale CGNAT range (`100.64.0.0/10`) are accepted.
+Everything else receives `403 Forbidden`.
+
+### WebSocket Origin Validation
+
+The `/ws` endpoint validates both:
+- **Source IP**: Must be localhost or Tailscale range (checked before `accept()`)
+- **Origin header**: Must be in `profile.yaml` CORS list or from a Tailscale IP
+
+### OpenAI-Compatible Endpoints (`/v1/`)
+
+The `/v1/chat/completions` and `/v1/models` endpoints support authentication
+via both:
+- `Authorization: Bearer <key>` (OpenAI standard)
+- `X-API-Key: <key>` (Moose standard)
+
+Set `MOOSE_OPENAI_API_KEY` to use a separate key for external consumers.
+Falls back to `MOOSE_API_KEY`.
+
+### CDP (Chrome DevTools Protocol) Hardening
+
+When OpenClaw launches Chromium, the CDP debug port **must** bind to
+`127.0.0.1` only. When deploying OpenClaw, ensure:
+
+```
+--remote-debugging-address=127.0.0.1
+--remote-debugging-port=9222
+```
+
+The `security_check.py` script will flag any CDP port not on loopback.
+
+### Running the Security Check
+
+```bash
+# Normal check — fails on violations, warns on suspicious bindings
+python3 security_check.py
+
+# Strict mode — treats warnings as failures
+python3 security_check.py --strict
+
+# Machine-readable output
+python3 security_check.py --json
+```
+
+The check runs automatically at startup (via `start.sh` and `daemon.py`).
+In daemon mode, a FAIL result prevents the server from starting.
+
+Results are logged to `~/Library/Logs/moose/security_check.log`.
+
+### Ollama IPv6 Fix (Bjorn)
+
+Ollama binds to `*:11434` on IPv6 by default, even when `OLLAMA_HOST` is set
+for IPv4 only. To fix:
+
+```bash
+# Option 1: Environment variable (add to shell profile)
+export OLLAMA_HOST=127.0.0.1:11434
+
+# Option 2: launchd override (create ~/Library/LaunchAgents/local.ollama.env.plist)
+# Set the OLLAMA_HOST env var before Ollama starts
+```
+
+### LM Studio Binding
+
+LM Studio defaults to `0.0.0.0:1234`. Change this in:
+**LM Studio → Server → Network → Listen address → `127.0.0.1`**
+
+### Recommended UniFi Firewall Rules
+
+Apply these on the VLAN where Bjorn and Poncho reside:
+
+| Rule | Action | Source | Destination | Port | Protocol |
+|------|--------|--------|-------------|------|----------|
+| 1 | Allow | Tailscale subnet (100.64.0.0/10) | Bjorn LAN IP | 8000 | TCP |
+| 2 | Allow | Poncho Tailscale IP | Bjorn Tailscale IP | 11434 | TCP |
+| 3 | Drop | Any | Bjorn LAN IP | 1234 | TCP |
+| 4 | Drop | Any | Bjorn LAN IP | 11434 | TCP |
+| 5 | Drop | Any | Bjorn LAN IP | 9222 | TCP |
+| 6 | Drop | Any | Bjorn LAN IP | 8787 | TCP |
+| 7 | Drop | Any | Bjorn LAN IP | 8888 | TCP |
+
+**IDS/IPS**: Enable "Emerging Threats" and "ET Open" rulesets. The CDP port
+(9222) should trigger alerts if traffic is seen from non-loopback sources.
+
+### Tailscale Mesh Topology
+
+```
+Bjorn (Mac Studio)     ── 100.126.201.109
+  └─ Moose API :8000
+  └─ LM Studio :1234 (local)
+  └─ Ollama :11434 (local)
+
+Poncho (Linux)         ── 100.107.61.25
+  └─ Ollama :11434 (Tailscale-accessible)
+  └─ OpenClaw (planned)
+  └─ SearXNG (planned)
+```
+
 ## Threat Model
 
 ### Assets Protected

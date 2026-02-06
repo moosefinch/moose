@@ -265,6 +265,32 @@ class CognitiveLoop:
         except Exception as e:
             logger.warning("[CognitiveLoop] Moltbook observe error: %s", e)
 
+        # 6. Model & capability health
+        try:
+            if self._core.model_manager:
+                # Re-sync with backend to detect external unloads
+                await self._core.model_manager._sync_loaded_state()
+                loaded = self._core.model_manager.get_loaded_models()
+                always_loaded = list(self._core.model_manager._always_loaded)
+                failed_loads = [
+                    k for k in always_loaded
+                    if not self._core.model_manager.is_loaded(k)
+                ]
+                task_failures = sum(
+                    1 for t in self._core._tasks.values() if t.status == "failed"
+                )
+                observations.append({
+                    "source": "system",
+                    "type": "model_health",
+                    "loaded": loaded,
+                    "always_loaded": always_loaded,
+                    "failed_loads": failed_loads,
+                    "task_failures": task_failures,
+                    "timestamp": now,
+                })
+        except Exception as e:
+            logger.warning("[CognitiveLoop] Model health observe error: %s", e)
+
         self._last_observation_time = now
         self.observations = observations
         return observations
@@ -352,6 +378,33 @@ class CognitiveLoop:
                             break
         except Exception as e:
             logger.warning("[CognitiveLoop] Persona matching error: %s", e)
+
+        # Detect capability gaps from model health
+        model_health_obs = [o for o in observations if o.get("type") == "model_health"]
+        for mh in model_health_obs:
+            # Failed always-loaded models → high severity gap
+            for failed_key in mh.get("failed_loads", []):
+                insights.append({
+                    "type": "capability_gap",
+                    "gap_type": "missing_model",
+                    "urgency": 0.9,
+                    "model_key": failed_key,
+                    "description": f"Always-loaded model '{failed_key}' is not loaded",
+                    "evidence": {"failed_loads": mh.get("failed_loads", [])},
+                    "severity": "high",
+                })
+
+            # Repeated task failures → medium severity gap
+            task_failures = mh.get("task_failures", 0)
+            if task_failures >= 3:
+                insights.append({
+                    "type": "capability_gap",
+                    "gap_type": "repeated_failures",
+                    "urgency": 0.7,
+                    "description": f"{task_failures} failed tasks detected in current cycle",
+                    "evidence": {"task_failure_count": task_failures},
+                    "severity": "medium",
+                })
 
         # Detect patterns from memory
         if related_memories:
@@ -451,6 +504,14 @@ class CognitiveLoop:
                     "urgency": urgency,
                 })
 
+            # Capability gaps → create improvement proposal
+            if insight["type"] == "capability_gap":
+                actions.append({
+                    "action": "create_proposal",
+                    "insight": insight,
+                    "urgency": urgency,
+                })
+
             # Patterns → store to memory
             if insight["type"] == "pattern":
                 actions.append({
@@ -515,6 +576,9 @@ class CognitiveLoop:
 
                 elif action_type == "content_series":
                     await self._act_content_series(insight)
+
+                elif action_type == "create_proposal":
+                    await self._act_create_proposal(insight)
 
             except Exception as e:
                 logger.warning("[CognitiveLoop] Action error (%s): %s", action.get("action"), e)
@@ -635,6 +699,66 @@ class CognitiveLoop:
             "stats": insight.get("stats", {}),
             "timestamp": time.time(),
         })
+
+    async def _act_create_proposal(self, insight: dict):
+        """Research a capability gap and create an improvement proposal."""
+        researcher = getattr(self._core, 'improvement_researcher', None)
+        if not researcher:
+            logger.warning("[CognitiveLoop] No improvement_researcher on core — skipping proposal")
+            return
+
+        # Deduplicate: don't create a proposal for a gap that already has a pending proposal
+        from improvement.models import ImprovementProposal
+        pending = ImprovementProposal.list_by_status("pending")
+        gap_desc = insight.get("description", "")
+        for p in pending:
+            if p.gap_description == gap_desc:
+                logger.debug("[CognitiveLoop] Proposal already pending for: %s", gap_desc)
+                return
+
+        # Research solution
+        solution = await researcher.research_solution(insight, self._core)
+        if not solution or solution.get("solution_type") == "none":
+            logger.info("[CognitiveLoop] No actionable solution for gap: %s", gap_desc)
+            return
+
+        # Create proposal
+        proposal = ImprovementProposal(
+            category=insight.get("gap_type", "unknown"),
+            severity=insight.get("severity", "medium"),
+            gap_description=gap_desc,
+            gap_evidence=insight.get("evidence", {}),
+            solution_type=solution.get("solution_type", ""),
+            solution_summary=solution.get("reasoning", ""),
+            solution_details=solution,
+            reasoning=solution.get("reasoning", ""),
+        )
+        proposal.save()
+
+        # Broadcast to frontend
+        await self._core.broadcast({
+            "type": "improvement_proposal",
+            "proposal": proposal.to_dict(),
+        })
+
+        # Toast notification
+        await self._core.broadcast({
+            "type": "proactive_insight",
+            "category": "improvement",
+            "message": f"New improvement proposal: {proposal.gap_description}",
+            "urgency": 0.8,
+        })
+
+        self.thought_journal.append({
+            "type": "proposal_created",
+            "proposal_id": proposal.id,
+            "gap": gap_desc,
+            "solution": solution.get("solution_type", ""),
+            "timestamp": time.time(),
+        })
+
+        logger.info("[CognitiveLoop] Created proposal %s: %s → %s",
+                     proposal.id, gap_desc, solution.get("solution_type", ""))
 
     # ── Reflection ──
 

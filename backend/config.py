@@ -298,7 +298,6 @@ _base_channels = {
 if _profile.plugins.crm.enabled:
     _base_channels["#outreach"] = {"outreach", "reasoner", "coder"}
     _base_channels["#content"] = {"content", "outreach", "reasoner"}
-
 # Filter to only include enabled agents
 CHANNEL_DEFINITIONS = {}
 enabled_set = set(AGENT_DEFINITIONS.keys())

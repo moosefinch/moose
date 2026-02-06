@@ -100,4 +100,6 @@ async def get_public_config():
         "version": "1.0.0",
         "enabled_plugins": enabled_plugins,
         "enabled_agents": _cfg.get_enabled_agents(),
+        "advocacy_enabled": _cfg.advocacy.enabled,
+        "cognitive_loop_enabled": _cfg.cognitive_loop.enabled,
     }

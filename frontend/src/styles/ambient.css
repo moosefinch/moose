@@ -8,16 +8,16 @@
 .ambient-pill {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
+    gap: 6px;
+    padding: 5px 12px;
     background: linear-gradient(165deg, rgba(38, 64, 53, 0.15) 0%, rgba(18, 16, 14, 0.7) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 24px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
     color: var(--text-secondary);
     font-family: var(--font);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -59,12 +59,12 @@
     0%, 100% {
         opacity: 1;
         transform: scale(1);
-        box-shadow: 0 0 8px currentColor;
+        box-shadow: 0 0 6px currentColor;
     }
     50% {
         opacity: 0.7;
-        transform: scale(1.2);
-        box-shadow: 0 0 16px currentColor, 0 0 24px currentColor;
+        transform: scale(1.08);
+        box-shadow: 0 0 12px currentColor, 0 0 20px currentColor;
     }
 }
 
@@ -81,13 +81,13 @@
 /* ═══ Ambient Dropdown ═══ */
 .ambient-dropdown {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
     right: 0;
     width: 260px;
     background: linear-gradient(165deg, rgba(38, 64, 53, 0.12) 0%, rgba(18, 16, 14, 0.95) 40%, rgba(12, 10, 8, 0.98) 100%);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 14px;
     z-index: 60;
@@ -159,11 +159,11 @@
 }
 
 .ai-toast {
-    padding: 14px 18px;
+    padding: 12px 16px;
     background: linear-gradient(165deg, rgba(38, 64, 53, 0.15) 0%, rgba(18, 16, 14, 0.92) 100%);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 0.85rem;
@@ -211,56 +211,7 @@
     line-height: 1.5;
 }
 
-/* ═══ Voice FAB ═══ */
-.voice-fab {
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(165deg, rgba(38, 64, 53, 0.3) 0%, rgba(18, 16, 14, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 40;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.02) inset;
-    position: relative;
-    overflow: hidden;
-}
-
-.voice-fab::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 15%;
-    right: 15%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-}
-
-.voice-fab:hover {
-    border-color: rgba(212, 176, 106, 0.2);
-    background: linear-gradient(165deg, rgba(38, 64, 53, 0.4) 0%, rgba(18, 16, 14, 0.95) 100%);
-    transform: scale(1.05);
-    box-shadow:
-        0 6px 24px rgba(0, 0, 0, 0.5),
-        0 0 30px rgba(212, 176, 106, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-}
-
-.voice-fab.recording {
-    border-color: rgba(196, 92, 92, 0.4);
-    background: linear-gradient(165deg, rgba(196, 92, 92, 0.2) 0%, rgba(18, 16, 14, 0.95) 100%);
-    animation: voiceGlow 1.5s ease-in-out infinite;
-}
-
+/* voiceGlow animation used by chat-voice-btn in chat.css */
 @keyframes voiceGlow {
     0%, 100% {
         box-shadow:
@@ -272,19 +223,4 @@
             0 4px 24px rgba(0, 0, 0, 0.5),
             0 0 40px rgba(196, 92, 92, 0.3);
     }
-}
-
-.voice-fab svg {
-    width: 24px;
-    height: 24px;
-    color: var(--primary);
-    transition: color 0.2s;
-}
-
-.voice-fab:hover svg {
-    color: var(--primary-light);
-}
-
-.voice-fab.recording svg {
-    color: var(--accent-red);
 }

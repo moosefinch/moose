@@ -1,0 +1,20 @@
+{
+  "provider": {
+    "id": "moose-local",
+    "name": "Moose (Local)",
+    "type": "openai",
+    "baseUrl": "http://127.0.0.1:8000/v1",
+    "apiKey": "${MOOSE_API_KEY}",
+    "models": [
+      {
+        "id": "moose",
+        "name": "Moose Multi-Agent",
+        "contextWindow": 131072,
+        "maxOutputTokens": 4096,
+        "supportsTools": true,
+        "supportsStreaming": true
+      }
+    ],
+    "default": true
+  }
+}

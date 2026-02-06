@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 from auth import MOOSE_API_KEY, set_app
 from core import AgentCore
+from network import is_allowed_source
 from schema import init_db
 from routes import register_routes
 
@@ -89,6 +90,26 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 
 
+class NetworkACLMiddleware(BaseHTTPMiddleware):
+    """Reject requests from non-Tailscale, non-localhost sources.
+
+    Defence-in-depth: even if Moose is accidentally bound to a LAN
+    interface, only loopback and Tailscale CGNAT (100.64/10) IPs are
+    allowed through.
+    """
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        client_ip = request.client.host if request.client else None
+        if client_ip and not is_allowed_source(client_ip):
+            logger.warning("Blocked request from non-Tailscale IP: %s %s",
+                           client_ip, request.url.path)
+            return Response(status_code=403, content="Forbidden")
+        return await call_next(request)
+
+
+app.add_middleware(NetworkACLMiddleware)
+
+
 class AuditMiddleware(BaseHTTPMiddleware):
     """Log security-relevant API requests to audit log."""
 
@@ -100,6 +121,8 @@ class AuditMiddleware(BaseHTTPMiddleware):
         "/api/tasks",
         "/api/files",
         "/ws",
+        "/v1/chat/completions",
+        "/v1/models",
     }
 
     async def dispatch(self, request: Request, call_next) -> Response:
@@ -148,4 +171,6 @@ if FRONTEND_DIST.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    from network import get_bind_host
+    _host = get_bind_host()
+    uvicorn.run(app, host=_host, port=8000)

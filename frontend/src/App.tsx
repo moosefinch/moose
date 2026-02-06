@@ -8,7 +8,7 @@ import { ViewportPage } from './pages/ViewportPage'
 import { MorePage } from './pages/MorePage'
 import { AIToast } from './components/ambient/AIToast'
 import { AmbientIndicator } from './components/ambient/AmbientIndicator'
-import { VoiceFAB } from './components/ambient/VoiceFAB'
+// VoiceFAB removed — mic button is now inline in ChatInput
 import { ApprovalDialog } from './components/ApprovalDialog'
 import { VoiceModeOverlay } from './components/VoiceModeOverlay'
 import { useWebSocket } from './hooks/useWebSocket'
@@ -18,8 +18,11 @@ import { useMarketing } from './hooks/useMarketing'
 import { useScheduledJobs } from './hooks/useScheduledJobs'
 import { useVoice } from './hooks/useVoice'
 import { useWebhooks } from './hooks/useWebhooks'
+import { useAdvocacy } from './hooks/useAdvocacy'
+import { useProposals } from './hooks/useProposals'
 import { useAppEvents } from './hooks/useAppEvents'
 import { useConfig } from './contexts/ConfigContext'
+import { ProposalBanner } from './components/ProposalBanner'
 import type { AgentEvent, AgentState, Mission, ChannelMessage, CognitiveStatus } from './types'
 
 export function App() {
@@ -40,10 +43,12 @@ export function App() {
 
   const { connected, on, off } = useWebSocket()
   const api = useApi()
-  const chat = useChat(api)
+  const chat = useChat()
   const marketing = useMarketing()
   const scheduling = useScheduledJobs()
   const webhooks = useWebhooks()
+  const advocacy = useAdvocacy()
+  const proposalsHook = useProposals()
   const voice = useVoice()
 
   const thinkingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -74,6 +79,8 @@ export function App() {
   // WebSocket event wiring (extracted)
   useAppEvents({
     on, off, chat, api, marketing,
+    advocacy: { refresh: advocacy.refresh },
+    proposals: { refresh: proposalsHook.refresh },
     setActiveModel, setAgentEvents, setAgentStates,
     setActiveMission, setChannelMessages, setCognitiveStatus,
     setPendingApproval, addToast,
@@ -120,7 +127,15 @@ export function App() {
       <AIToast toasts={toasts} onDismiss={dismissToast} />
 
       <div className="app-shell">
-        <TabBar connected={connected} apiUp={api.apiUp} cognitiveStatus={cognitiveStatus} />
+        <TabBar />
+
+        {proposalsHook.pendingProposals.length > 0 && (
+          <ProposalBanner
+            proposals={proposalsHook.pendingProposals}
+            onApprove={proposalsHook.approveProposal}
+            onReject={proposalsHook.rejectProposal}
+          />
+        )}
 
         <div className="page-container">
           {page === 'dashboard' && (
@@ -146,12 +161,11 @@ export function App() {
               endRef={chat.endRef}
               onSend={chat.sendMessage}
               onVoiceStart={handleVoiceStart}
+              isRecording={voice.isRecording}
               cognitiveStatus={cognitiveStatus}
-              conversations={chat.conversations}
-              activeConvoId={chat.activeConvoId}
-              onSelectConversation={chat.loadConversation}
-              onNewConversation={chat.createConversation}
-              onDeleteConversation={chat.deleteConversation}
+              briefings={api.briefings}
+              onMarkBriefingRead={api.markBriefingRead}
+              onMarkAllRead={api.markAllBriefingsRead}
               agents={agentStates}
               connected={connected}
               apiUp={api.apiUp}
@@ -159,6 +173,20 @@ export function App() {
               onPostMessage={api.postToChannel}
               memoryCount={api.memoryCount}
               onSearchMemory={api.searchMemory}
+              advocacyEnabled={config.advocacyEnabled}
+              advocacyStatus={advocacy.status}
+              advocacyGoals={advocacy.goals}
+              advocacyUnconfirmedGoals={advocacy.unconfirmedGoals}
+              advocacyPatterns={advocacy.patterns}
+              onCreateGoal={advocacy.createGoal}
+              onUpdateGoal={advocacy.updateGoal}
+              onConfirmGoal={advocacy.confirmGoal}
+              onRejectGoal={advocacy.rejectGoal}
+              onRecordEvidence={advocacy.recordEvidence}
+              onDismissPattern={advocacy.dismissPattern}
+              onStartOnboarding={advocacy.startOnboarding}
+              onRespondOnboarding={advocacy.respondOnboarding}
+              onResetOnboarding={advocacy.resetOnboarding}
               crmEnabled={config.enabledPlugins.includes('crm')}
               pendingEmails={marketing.pendingEmails}
               pendingContent={marketing.pendingContent}
@@ -176,6 +204,9 @@ export function App() {
               onCreateWebhook={webhooks.createWebhook}
               onUpdateWebhook={webhooks.updateWebhook}
               onDeleteWebhook={webhooks.deleteWebhook}
+              proposals={proposalsHook.proposals}
+              onApproveProposal={proposalsHook.approveProposal}
+              onRejectProposal={proposalsHook.rejectProposal}
             />
           )}
         </div>
@@ -186,16 +217,6 @@ export function App() {
         agents={agentStates}
         expanded={expandedIndicator}
         onToggle={() => setExpandedIndicator(p => !p)}
-      />
-
-      <VoiceFAB
-        isRecording={voice.isRecording}
-        onStart={handleVoiceStart}
-        onStop={async () => {
-          const text = await voice.stopRecording()
-          setVoiceOverlayOpen(false)
-          if (text.trim()) chat.sendMessage(text)
-        }}
       />
 
       <ApprovalDialog approval={pendingApproval} onResolved={() => setPendingApproval(null)} />

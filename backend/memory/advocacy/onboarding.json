@@ -1,0 +1,11 @@
+{
+  "stage": "intro",
+  "started_at": null,
+  "completed_at": null,
+  "user_data": {},
+  "goals_data": [],
+  "advocates_data": [],
+  "family_data": [],
+  "current_advocate_index": 0,
+  "current_family_index": 0
+}

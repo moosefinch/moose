@@ -110,7 +110,7 @@ export function ChannelsPanel({ messages, onPostMessage }: Props) {
           >
             <div>{ch.name}</div>
             <div style={{ fontSize: '0.6rem', opacity: 0.5, marginTop: '3px' }}>
-              {ch.message_count} msgs {ch.allowed_agents ? `\u00B7 ${ch.allowed_agents.length} agents` : ''}
+              {ch.message_count} msgs{ch.allowed_agents ? ` / ${ch.allowed_agents.length} agents` : ''}
             </div>
           </button>
         ))}

@@ -162,6 +162,9 @@ class AgentCore(_StateMixin, _ClassificationMixin, _EscalationMixin, _ChatPipeli
         self._current_session_id: Optional[str] = None
         # Advocacy subsystem
         self.advocacy_system = None
+        # Self-improvement subsystem
+        self.improvement_researcher = None
+        self.improvement_executor = None
 
     # ── Model Discovery ──
 
@@ -337,6 +340,16 @@ class AgentCore(_StateMixin, _ClassificationMixin, _EscalationMixin, _ChatPipeli
                     logger.error("Advocacy system init failed: %s", e)
                     self.advocacy_system = None
 
+            # Initialize self-improvement subsystem
+            try:
+                from improvement.researcher import SolutionResearcher
+                from improvement.executor import ProposalExecutor
+                self.improvement_researcher = SolutionResearcher()
+                self.improvement_executor = ProposalExecutor()
+                logger.info("Self-improvement system initialized")
+            except Exception as e:
+                logger.error("Self-improvement system init failed: %s", e)
+
             # Initialize marketing engine if CRM plugin is enabled
             if profile.plugins.crm.enabled:
                 try:
@@ -406,7 +419,6 @@ class AgentCore(_StateMixin, _ClassificationMixin, _EscalationMixin, _ChatPipeli
             enabled.append("slack")
         if getattr(profile.plugins, "printing", None) and getattr(profile.plugins.printing, "enabled", False):
             enabled.append("printing")
-
         if not enabled:
             return
 

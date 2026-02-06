@@ -25,7 +25,10 @@ export function PlanTrace({ plan }: Props) {
         fontSize: '0.7rem', fontWeight: 500, padding: '4px 10px',
         cursor: 'pointer', borderRadius: 'var(--radius-xs)', transition: 'all 0.15s',
       }}>
-        {open ? '\u25BC' : '\u25B6'} Plan: {plan.tasks.length} task{plan.tasks.length > 1 ? 's' : ''}{plan.synthesized ? ' + synthesis' : ''}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+          {open ? <path d="M2.5 3.5L5 6.5L7.5 3.5" /> : <path d="M3.5 2L6.5 5L3.5 8" />}
+        </svg>
+        Plan: {plan.tasks.length} task{plan.tasks.length > 1 ? 's' : ''}{plan.synthesized ? ' + synthesis' : ''}
         {plan.complexity && <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem', letterSpacing: '0.5px', marginLeft: '4px' }}>[{plan.complexity}]</span>}
       </button>
       {open && (
@@ -53,7 +56,14 @@ export function PlanTrace({ plan }: Props) {
               </div>
             )
           })}
-          {plan.synthesized && <div style={{ color: 'var(--accent-green)', fontSize: '0.65rem', marginTop: '4px', fontWeight: 500 }}>{'\u2514'} HERMES SYNTHESIS</div>}
+          {plan.synthesized && (
+            <div style={{ color: 'var(--accent-green)', fontSize: '0.65rem', marginTop: '4px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 2v6h6" />
+              </svg>
+              HERMES SYNTHESIS
+            </div>
+          )}
         </div>
       )}
     </div>

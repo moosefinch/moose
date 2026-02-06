@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useApi } from './useApi'
 import type { ChatMessage, Conversation } from '../types'
 
-export function useChat(api: ReturnType<typeof import('./useApi').useApi>) {
+export function useChat() {
+  const api = useApi()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [activeConvoId, setActiveConvoId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)

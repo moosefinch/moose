@@ -1,0 +1,36 @@
+[
+  {
+    "id": "eebce7f5-e36",
+    "text": "Ship Moose v1.0",
+    "category": "career",
+    "priority": 0.9,
+    "parent_id": null,
+    "tensions": [],
+    "status": "active",
+    "evidence": [],
+    "created_at": "2026-02-05T23:46:08.920062+00:00",
+    "updated_at": "2026-02-05T23:46:08.920067+00:00",
+    "inferred": false,
+    "confirmed": true
+  },
+  {
+    "id": "a7c5c111-433",
+    "text": "Improve sleep schedule",
+    "category": "health",
+    "priority": 0.8,
+    "parent_id": null,
+    "tensions": [],
+    "status": "completed",
+    "evidence": [
+      {
+        "type": "stated",
+        "description": "Went to bed before midnight",
+        "last_observed": "2026-02-05T23:47:22.611192+00:00"
+      }
+    ],
+    "created_at": "2026-02-05T23:47:12.002305+00:00",
+    "updated_at": "2026-02-05T23:47:42.487156+00:00",
+    "inferred": false,
+    "confirmed": true
+  }
+]

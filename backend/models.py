@@ -129,3 +129,29 @@ class WebhookUpdate(BaseModel):
     action_type: Optional[str] = None
     action_payload: Optional[str] = None
     enabled: Optional[bool] = None
+
+
+class GoalCreate(BaseModel):
+    text: str
+    category: str = "other"
+    priority: float = 0.5
+    parent_id: Optional[str] = None
+
+
+class GoalUpdate(BaseModel):
+    status: Optional[str] = None
+    priority: Optional[float] = None
+
+
+class EvidenceCreate(BaseModel):
+    type: str = "stated"
+    description: str
+
+
+class OnboardingResponse(BaseModel):
+    text: str
+
+
+class ProposalDecision(BaseModel):
+    approved: bool
+    notes: str = ""

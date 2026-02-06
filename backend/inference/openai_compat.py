@@ -31,12 +31,33 @@ class OpenAICompatBackend(InferenceBackend):
     # ── Model Discovery ──
 
     async def discover_models(self) -> dict[str, dict]:
-        """Query the backend for available models via /v1/models.
+        """Query the backend for available models.
 
-        Falls back to LM Studio's /api/v0/models for richer metadata
-        (model state, capabilities).
+        Tries LM Studio /api/v1/models first (has loaded_instances for
+        accurate load-state detection), then /v1/models (OpenAI compat,
+        lists all downloaded — cannot distinguish loaded vs downloaded).
         """
-        # Try standard OpenAI /v1/models first
+        # Prefer LM Studio native API — has loaded_instances field
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.get(f"{self.base_url}/api/v1/models")
+                resp.raise_for_status()
+                models = {}
+                for m in resp.json().get("models", []):
+                    mid = m.get("key", m.get("id", ""))
+                    models[mid] = m
+                    loaded = len(m.get("loaded_instances", [])) > 0
+                    self._model_states[mid] = "loaded" if loaded else "downloaded"
+                    caps = m.get("capabilities", {})
+                    self._model_capabilities[mid] = (
+                        list(caps.keys()) if isinstance(caps, dict) else caps
+                    ) or ["chat"]
+                return models
+        except Exception:
+            pass
+
+        # Fallback: OpenAI /v1/models — marks all as "downloaded" since
+        # this endpoint cannot distinguish loaded from merely available.
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.get(f"{self.base_url}/v1/models")
@@ -46,26 +67,8 @@ class OpenAICompatBackend(InferenceBackend):
                 for m in data.get("data", []):
                     mid = m.get("id", "")
                     models[mid] = m
-                    self._model_states[mid] = "loaded"
+                    self._model_states[mid] = "downloaded"
                     self._model_capabilities[mid] = m.get("capabilities", ["chat"])
-                return models
-        except Exception:
-            pass
-
-        # Fallback: LM Studio /api/v0/models for richer metadata
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(f"{self.base_url}/api/v0/models")
-                resp.raise_for_status()
-                models = {}
-                for m in resp.json().get("data", []):
-                    mid = m.get("id", "")
-                    models[mid] = m
-                    self._model_capabilities[mid] = m.get("capabilities", ["chat"])
-                    state = m.get("state", "not-loaded")
-                    self._model_states[mid] = (
-                        "loaded" if state == "loaded" else "downloaded"
-                    )
                 return models
         except Exception as e:
             raise ConnectionError(
@@ -159,8 +162,8 @@ class OpenAICompatBackend(InferenceBackend):
         """Load a model into the backend.
 
         1. Checks internal cache for already-loaded state.
-        2. Queries /v1/models to see if the model is currently served.
-        3. Tries LM Studio's dynamic load API (/api/v1/models/load).
+        2. Queries LM Studio /api/v1/models for actual loaded_instances.
+        3. Triggers load via /api/v1/models/load if not yet loaded.
 
         Returns True if the model is loaded and ready.
         """
@@ -169,26 +172,26 @@ class OpenAICompatBackend(InferenceBackend):
             if self._model_states.get(model_id) == "loaded":
                 return True
 
-            # Check via /v1/models
+            # Check actual load state via LM Studio native API
             try:
                 async with httpx.AsyncClient(timeout=10) as client:
-                    resp = await client.get(f"{self.base_url}/v1/models")
+                    resp = await client.get(f"{self.base_url}/api/v1/models")
                     resp.raise_for_status()
-                    available = {
-                        m["id"] for m in resp.json().get("data", [])
-                    }
-                    if model_id in available:
-                        self._model_states[model_id] = "loaded"
-                        return True
+                    for m in resp.json().get("models", []):
+                        mid = m.get("key", m.get("id", ""))
+                        if mid == model_id and len(m.get("loaded_instances", [])) > 0:
+                            self._model_states[model_id] = "loaded"
+                            return True
             except Exception:
                 pass
 
-            # Try LM Studio dynamic load
+            # Not loaded — trigger load via LM Studio dynamic load API
             try:
                 payload = {"model": model_id}
                 if ttl is not None:
                     payload["ttl"] = ttl
-                async with httpx.AsyncClient(timeout=60) as client:
+                logger.info("Loading model %s into LM Studio...", model_id)
+                async with httpx.AsyncClient(timeout=120) as client:
                     resp = await client.post(
                         f"{self.base_url}/api/v1/models/load", json=payload
                     )

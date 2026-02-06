@@ -220,7 +220,7 @@ export interface ICPPersona {
 }
 
 export interface CognitiveStatus {
-  phase: 'idle' | 'observe' | 'orient' | 'decide' | 'act'
+  phase: 'idle' | 'observe' | 'orient' | 'advocate' | 'decide' | 'act'
   cycle: number
   observations: number
   thoughts: number
@@ -255,4 +255,64 @@ export interface WebhookEndpoint {
   action_payload?: string
   enabled: number
   created_at: string
+}
+
+export interface AdvocacyGoal {
+  id: string
+  text: string
+  category: string
+  priority: number
+  parent_id?: string
+  tensions: string[]
+  status: string
+  evidence: { type: string; description: string; last_observed: string }[]
+  created_at: string
+  updated_at: string
+  inferred: boolean
+  confirmed: boolean
+}
+
+export interface AdvocacyPattern {
+  id: string
+  type: string
+  description: string
+  evidence: string[]
+  first_observed: string
+  last_observed: string
+  occurrences: number
+  friction_level: number
+  dismissed: boolean
+  escalated: boolean
+  related_goals: string[]
+}
+
+export interface ImprovementProposal {
+  id: string
+  created_at: number
+  status: 'pending' | 'approved' | 'executing' | 'completed' | 'failed' | 'rejected'
+  category: string
+  severity: string
+  gap_description: string
+  gap_evidence: Record<string, unknown>
+  solution_type: string
+  solution_summary: string
+  solution_details: Record<string, unknown>
+  reasoning: string
+  execution_log: { timestamp: number; message: string }[]
+  approved_at?: number
+  executed_at?: number
+  completed_at?: number
+  result?: string
+  error?: string
+}
+
+export interface AdvocacyStatus {
+  enabled: boolean
+  profile: string
+  active_goals: number
+  unconfirmed_goals: number
+  active_patterns: number
+  friction?: { flags_today: number; max_flags_per_day: number; queued: number }
+  developmental?: { mode: string }
+  onboarding?: { stage: string; started: boolean; complete: boolean }
 }

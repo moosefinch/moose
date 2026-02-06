@@ -16,9 +16,10 @@ const BADGE_COLORS: Record<string, string> = {
 
 interface Props {
   message: ChatMessage
+  brainOnly?: boolean
 }
 
-export function MessageBubble({ message }: Props) {
+export function MessageBubble({ message, brainOnly }: Props) {
   const [copied, setCopied] = useState(false)
   const m = message
 
@@ -56,6 +57,28 @@ export function MessageBubble({ message }: Props) {
 
   const badgeColor = BADGE_COLORS[m.model_key || '']
 
+  // Brain-only mode: skip conversation text, only show traces
+  if (brainOnly && m.role === 'assistant') {
+    const hasTraces = (m.tool_calls && m.tool_calls.length > 0) || m.plan
+    if (!hasTraces) return null
+    return (
+      <div className="message-bubble">
+        {m.model_key && badgeColor && (
+          <div className="message-model-badge" style={{ color: badgeColor }}>
+            {m.model_label || m.model_key}
+          </div>
+        )}
+        {m.plan && <PlanTrace plan={m.plan} />}
+        {m.tool_calls && m.tool_calls.length > 0 && <ToolTrace calls={m.tool_calls} />}
+        {m.elapsed_seconds && m.elapsed_seconds > 0 && (
+          <div className="message-footer">
+            <span>{m.elapsed_seconds}s</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className={`message-bubble ${isUser ? 'message-bubble-user' : ''} ${isErr ? 'message-bubble-error' : ''}`}>
       {/* Model badge — simple colored text */}
@@ -84,7 +107,10 @@ export function MessageBubble({ message }: Props) {
               }}
               className="message-action-btn"
             >
-              {'\uD83D\uDD0A'}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
             </button>
           )}
           <button

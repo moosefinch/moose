@@ -20,13 +20,30 @@ router = APIRouter()
 
 @router.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
+    from urllib.parse import urlparse
     from profile import get_profile as _get_profile
+    from network import is_allowed_source, is_tailscale_ip
+
+    # ── Source IP check (reject before accept) ──
+    client_ip = websocket.client.host if websocket.client else None
+    if client_ip and not is_allowed_source(client_ip):
+        logger.warning("WS rejected: non-Tailscale source %s", client_ip)
+        await websocket.close(code=4003, reason="Source not allowed")
+        return
+
+    # ── Origin check ──
     _ws_profile = _get_profile()
     origin = websocket.headers.get("origin", "")
-    allowed_origins = _ws_profile.web.cors_origins
-    if origin and origin not in allowed_origins:
-        await websocket.close(code=4003, reason="Origin not allowed")
-        return
+    if origin:
+        allowed_origins = set(_ws_profile.web.cors_origins)
+        if origin not in allowed_origins:
+            parsed_host = urlparse(origin).hostname or ""
+            if not (is_tailscale_ip(parsed_host)
+                    or parsed_host in ("127.0.0.1", "localhost", "::1")):
+                logger.warning("WS rejected: origin %s not allowed", origin)
+                await websocket.close(code=4003, reason="Origin not allowed")
+                return
+
     await websocket.accept()
     try:
         raw = await asyncio.wait_for(websocket.receive_text(), timeout=5)

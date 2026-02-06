@@ -7,6 +7,7 @@ interface Props {
   sending: boolean
   hasMessages: boolean
   onSend: (text: string) => void
+  isSpeaking?: boolean
 }
 
 // Ambient idle lines Moose might "think"
@@ -55,7 +56,7 @@ function phaseToAvatar(phase: string, sending: boolean): AvatarState {
   }
 }
 
-export function AvatarPresence({ cognitiveStatus, sending, hasMessages, onSend }: Props) {
+export function AvatarPresence({ cognitiveStatus, sending, hasMessages, onSend, isSpeaking }: Props) {
   const [avatarState, setAvatarState] = useState<AvatarState>('idle')
   const [bubble, setBubble] = useState<string | null>(null)
   const [bubbleVisible, setBubbleVisible] = useState(false)
@@ -63,8 +64,12 @@ export function AvatarPresence({ cognitiveStatus, sending, hasMessages, onSend }
   const idleTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const prevPhase = useRef<string>('idle')
 
-  // Derive avatar state from cognitive status + sending
+  // Derive avatar state from cognitive status + sending + speaking
   useEffect(() => {
+    if (isSpeaking) {
+      setAvatarState('talking')
+      return
+    }
     const phase = cognitiveStatus?.phase ?? 'idle'
     const state = phaseToAvatar(phase, sending)
     setAvatarState(state)
@@ -76,7 +81,7 @@ export function AvatarPresence({ cognitiveStatus, sending, hasMessages, onSend }
         showBubble(pickRandom(THINKING_LINES))
       }
     }
-  }, [cognitiveStatus, sending])
+  }, [cognitiveStatus, sending, isSpeaking])
 
   const showBubble = useCallback((text: string, duration = 4000) => {
     if (bubbleTimer.current) clearTimeout(bubbleTimer.current)
@@ -136,13 +141,6 @@ export function AvatarPresence({ cognitiveStatus, sending, hasMessages, onSend }
           <div className="speech-bubble-tail" />
         </div>
       )}
-
-      <div className="avatar-presence-status">
-        <span className={`avatar-status-dot ${avatarState}`} />
-        <span className="avatar-status-label">
-          {sending ? 'Thinking' : (cognitiveStatus?.phase ?? 'idle')}
-        </span>
-      </div>
     </div>
   )
 }

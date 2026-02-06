@@ -17,7 +17,10 @@ export function ToolTrace({ calls }: Props) {
         fontSize: '0.7rem', fontWeight: 500, padding: '4px 10px',
         cursor: 'pointer', borderRadius: 'var(--radius-xs)', transition: 'all 0.15s',
       }}>
-        {open ? '\u25BC' : '\u25B6'} {calls.length} tool{calls.length > 1 ? 's' : ''} used
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+          {open ? <path d="M2.5 3.5L5 6.5L7.5 3.5" /> : <path d="M3.5 2L6.5 5L3.5 8" />}
+        </svg>
+        {calls.length} tool{calls.length > 1 ? 's' : ''} used
       </button>
       {open && (
         <div style={{ marginTop: '8px', fontSize: '0.75rem' }}>

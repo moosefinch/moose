@@ -291,7 +291,20 @@ class ModelManager:
         try:
             from config import MODELS
             discovered = await self._router.discover_models()
-            loaded_ids = set(discovered.keys())
+
+            # Build set of model IDs that are actually loaded in VRAM,
+            # not just downloaded/available.
+            loaded_ids = set()
+            for mid, info in discovered.items():
+                if isinstance(info, dict):
+                    instances = info.get("loaded_instances", [])
+                    if len(instances) > 0:
+                        loaded_ids.add(mid)
+                # Fallback: check the backend's tracked state
+                for backend in self._router._backends.values():
+                    if hasattr(backend, '_model_states'):
+                        if backend._model_states.get(mid) == "loaded":
+                            loaded_ids.add(mid)
 
             async with self._lock:
                 for model_key, model_id in MODELS.items():
